@@ -1,0 +1,2871 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DigitalStore — Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* ════ LIGHT MODE ════ */
+    :root {
+      --bg: #f5f5f2;
+      --surface: #fff;
+      --surface2: #eeeeeb;
+      --border: #e2e2df;
+      --text: #111110;
+      --muted: #7a7a76;
+      --teal: #497b89;
+      --teal-light: #a7ffeb;
+      --teal-dark: #3a6475;
+      --green: #4b5563;
+      --green-light: #f3f4f6;
+      --red: #dc2626;
+      --red-light: #fef2f2;
+      --orange: #c2410c;
+      --orange-light: #fff7ed;
+      --blue: #1d4ed8;
+      --blue-light: #eff6ff;
+      --yellow: #b45309;
+      --yellow-light: #fefce8;
+      --sidebar-bg: #1a2e35;
+      --sidebar-text: rgba(255, 255, 255, .55);
+      --sidebar-active: rgba(73, 123, 137, .35);
+      --r: 12px;
+      --rs: 8px;
+      --sh: 0 1px 3px rgba(0, 0, 0, .06), 0 4px 16px rgba(0, 0, 0, .05);
+      --sh-lg: 0 8px 40px rgba(0, 0, 0, .10);
+      --t: .22s cubic-bezier(.4, 0, .2, 1);
+      --sidebar-w: 252px;
+    }
+
+    /* ════ DARK MODE ════ */
+    [data-theme="dark"] {
+      --bg: #0f1923;
+      --surface: #1a2535;
+      --surface2: #1e2d3d;
+      --border: #2a3d50;
+      --text: #e8f4f8;
+      --muted: #8aa8b8;
+      --teal: #5ba3b8;
+      --teal-light: #1a4a5a;
+      --teal-dark: #4a8fa8;
+      --green: #6b7280;
+      --green-light: #1f2937;
+      --red: #f87171;
+      --red-light: #2e0f0f;
+      --orange: #fb923c;
+      --orange-light: #2e1500;
+      --blue: #60a5fa;
+      --blue-light: #0f1e3d;
+      --yellow: #fbbf24;
+      --yellow-light: #2e1e00;
+      --sidebar-bg: #0d1b22;
+      --sidebar-text: rgba(255, 255, 255, .45);
+      --sidebar-active: rgba(91, 163, 184, .25);
+      --sh: 0 1px 3px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .25);
+      --sh-lg: 0 8px 40px rgba(0, 0, 0, .4);
+    }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      font-size: 14px;
+      line-height: 1.6;
+      transition: background var(--t), color var(--t)
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 99px
+    }
+
+    /* RTL support */
+    [dir="rtl"] .sb-item i {
+      margin-right: 0;
+      margin-left: 11px;
+    }
+
+    [dir="rtl"] .sb-item.active::before {
+      left: auto;
+      right: 0;
+    }
+
+    [dir="rtl"] .td-actions {
+      flex-direction: row-reverse;
+    }
+
+    /* ── LOGIN ── */
+    #loginScreen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: linear-gradient(135deg, #e8edf0 0%, #d0dde4 50%, #c8d8e0 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    [data-theme="dark"] #loginScreen {
+      background: linear-gradient(135deg, #0d2535 0%, #0a1f2e 50%, #0f2840 100%)
+    }
+
+    .login-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 24px;
+      padding: 44px 40px;
+      width: 420px;
+      max-width: 95vw;
+      box-shadow: 0 32px 80px rgba(73, 123, 137, .2);
+      animation: slideUp .35s ease
+    }
+
+    [data-theme="dark"] .login-card {
+      background: rgba(26, 37, 53, 0.98);
+      border: 1px solid var(--border)
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0
+      }
+
+      to {
+        transform: none;
+        opacity: 1
+      }
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 28px
+    }
+
+    .login-logo-img {
+      height: 64px;
+      border-radius: 12px;
+      margin-bottom: 10px
+    }
+
+    .login-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      color: var(--text)
+    }
+
+    .login-brand span {
+      color: var(--teal)
+    }
+
+    .login-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(73, 123, 137, .12);
+      color: var(--teal);
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      margin-top: 6px
+    }
+
+    .login-field {
+      margin-bottom: 14px
+    }
+
+    .login-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 6px
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      background: var(--bg);
+      color: var(--text);
+      transition: all var(--t)
+    }
+
+    .login-input:focus {
+      outline: none;
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(73, 123, 137, .1)
+    }
+
+    .login-submit {
+      width: 100%;
+      padding: 13px;
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all var(--t);
+      margin-top: 8px
+    }
+
+    .login-submit:hover {
+      background: var(--teal-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(73, 123, 137, .3)
+    }
+
+    .login-hint {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--muted)
+    }
+
+    .login-error {
+      background: var(--red-light);
+      color: var(--red);
+      border-radius: var(--rs);
+      padding: 8px 12px;
+      font-size: 13px;
+      margin-bottom: 12px;
+      display: none;
+      border: 1px solid rgba(220, 38, 38, .2)
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--sidebar-bg);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      position: sticky;
+      top: 0;
+      overflow-y: auto;
+      transition: background var(--t)
+    }
+
+    .sb-head {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+      text-align: center
+    }
+
+    .sb-logo {
+      height: 52px;
+      border-radius: 10px;
+      margin-bottom: 10px
+    }
+
+    .sb-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -.3px
+    }
+
+    .sb-brand span {
+      color: var(--teal-light)
+    }
+
+    .sb-admin {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--teal-light);
+      margin-top: 4px;
+      opacity: .8
+    }
+
+    .sb-nav {
+      flex: 1;
+      padding: 14px 0
+    }
+
+    .sb-section {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, .3);
+      padding: 14px 22px 6px
+    }
+
+    .sb-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 10px 22px;
+      cursor: pointer;
+      color: var(--sidebar-text);
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: all var(--t);
+      position: relative
+    }
+
+    .sb-item:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, .06)
+    }
+
+    .sb-item.active {
+      color: #fff;
+      background: var(--sidebar-active)
+    }
+
+    .sb-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--teal-light);
+      border-radius: 0 2px 2px 0
+    }
+
+    .sb-item i {
+      width: 16px;
+      font-size: 13px;
+      text-align: center;
+      opacity: .8
+    }
+
+    .sb-item.active i {
+      opacity: 1
+    }
+
+    .sb-badge {
+      margin-left: auto;
+      background: var(--teal);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 99px
+    }
+
+    .sb-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255, 255, 255, .08)
+    }
+
+    .sb-footer-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, .35);
+      font-size: 12.5px;
+      text-decoration: none;
+      padding: 6px 0;
+      transition: color var(--t)
+    }
+
+    .sb-footer-link:hover {
+      color: #fff
+    }
+
+    .sb-logout {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(220, 38, 38, .7);
+      font-size: 13px;
+      cursor: pointer;
+      padding: 8px 0;
+      transition: color var(--t)
+    }
+
+    .sb-logout:hover {
+      color: #f87171
+    }
+
+    /* ── MAIN ── */
+    .main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      transition: background var(--t), border-color var(--t)
+    }
+
+    .topbar-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -.3px
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .topbar-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(73, 123, 137, .12);
+      color: var(--teal);
+      padding: 6px 12px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 700
+    }
+
+    .topbar-btn {
+      padding: 7px 13px;
+      border-radius: var(--rs);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--t);
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 5px
+    }
+
+    .topbar-btn:hover {
+      background: var(--bg);
+      border-color: var(--teal);
+      color: var(--teal)
+    }
+
+    .guide-btn {
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark)) !important;
+      color: #fff !important;
+      border-color: transparent !important;
+      box-shadow: 0 2px 10px rgba(73, 123, 137, .35);
+      animation: guidePulse 2.5s ease-in-out infinite
+    }
+
+    .guide-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 18px rgba(73, 123, 137, .5) !important
+    }
+
+    @keyframes guidePulse {
+
+      0%,
+      100% {
+        box-shadow: 0 2px 10px rgba(73, 123, 137, .35)
+      }
+
+      50% {
+        box-shadow: 0 2px 20px rgba(73, 123, 137, .65)
+      }
+    }
+
+    /* ── TOUR OVERLAY ── */
+    #tourBackdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      z-index: 8000;
+      pointer-events: none;
+      transition: opacity .3s
+    }
+
+    #tourBox {
+      position: fixed;
+      z-index: 8100;
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+      padding: 22px 24px;
+      width: 320px;
+      max-width: 90vw;
+      transition: all .35s cubic-bezier(.4, 0, .2, 1);
+      pointer-events: all
+    }
+
+    #tourBox::before {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: var(--surface);
+      transform: rotate(45deg);
+      z-index: -1
+    }
+
+    #tourBox.arrow-top::before {
+      top: -7px;
+      left: 50%;
+      margin-left: -7px
+    }
+
+    #tourBox.arrow-bottom::before {
+      bottom: -7px;
+      left: 50%;
+      margin-left: -7px
+    }
+
+    #tourBox.arrow-left::before {
+      left: -7px;
+      top: 28px
+    }
+
+    #tourBox.arrow-right::before {
+      right: -7px;
+      top: 28px
+    }
+
+    .tour-step-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(73, 123, 137, .15);
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 99px;
+      margin-bottom: 10px
+    }
+
+    .tour-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 7px;
+      color: var(--text)
+    }
+
+    .tour-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 16px
+    }
+
+    .tour-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px
+    }
+
+    .tour-nav-btns {
+      display: flex;
+      gap: 8px
+    }
+
+    .tour-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: all .2s
+    }
+
+    .tour-btn-prev {
+      background: var(--surface2);
+      color: var(--text)
+    }
+
+    .tour-btn-prev:hover {
+      background: var(--border)
+    }
+
+    .tour-btn-next {
+      background: var(--teal);
+      color: #fff
+    }
+
+    .tour-btn-next:hover {
+      background: var(--teal-dark)
+    }
+
+    .tour-btn-skip {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 7px 13px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s
+    }
+
+    .tour-btn-skip:hover {
+      color: var(--red);
+      border-color: var(--red)
+    }
+
+    .tour-progress {
+      display: flex;
+      gap: 4px;
+      align-items: center
+    }
+
+    .tour-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: all .2s
+    }
+
+    .tour-dot.active {
+      background: var(--teal);
+      width: 18px;
+      border-radius: 4px
+    }
+
+    .tour-highlight {
+      outline: 3px solid var(--teal) !important;
+      outline-offset: 4px !important;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, .5) !important;
+      position: relative !important;
+      z-index: 8050 !important;
+      border-radius: 8px !important;
+      transition: all .3s !important
+    }
+
+    /* Lang selector */
+    .lang-sel {
+      padding: 6px 10px;
+      border-radius: var(--rs);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all var(--t)
+    }
+
+    .lang-sel:focus {
+      outline: none;
+      border-color: var(--teal)
+    }
+
+    /* Dark toggle */
+    .dark-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--rs);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      transition: all var(--t)
+    }
+
+    .dark-btn:hover {
+      background: var(--bg);
+      border-color: var(--teal);
+      color: var(--teal)
+    }
+
+    .content {
+      padding: 22px 26px;
+      flex: 1
+    }
+
+    .section {
+      display: none
+    }
+
+    .section.active {
+      display: block;
+      animation: fadeUp .25s ease
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    /* ── STAT CARDS ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 17px 18px;
+      transition: background var(--t), border-color var(--t)
+    }
+
+    .stat-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      margin-bottom: 11px
+    }
+
+    .si-teal {
+      background: rgba(167, 255, 235, .25);
+      color: var(--teal)
+    }
+
+    .si-green {
+      background: var(--surface2);
+      color: var(--muted)
+    }
+
+    .si-orange {
+      background: var(--orange-light);
+      color: var(--orange)
+    }
+
+    .si-red {
+      background: var(--red-light);
+      color: var(--red)
+    }
+
+    .si-blue {
+      background: var(--blue-light);
+      color: var(--blue)
+    }
+
+    .si-yellow {
+      background: var(--yellow-light);
+      color: var(--yellow)
+    }
+
+    .stat-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1
+    }
+
+    .stat-lbl {
+      color: var(--muted);
+      font-size: 11.5px;
+      margin-top: 4px
+    }
+
+    /* ── BOX ── */
+    .box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: background var(--t), border-color var(--t)
+    }
+
+    .box-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 17px;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .box-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -.3px
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 17px;
+      border-radius: var(--rs);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: all var(--t)
+    }
+
+    .btn-teal {
+      background: var(--teal);
+      color: #fff
+    }
+
+    .btn-teal:hover {
+      background: var(--teal-dark);
+      transform: translateY(-1px)
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--text)
+    }
+
+    .btn-outline:hover {
+      border-color: var(--teal);
+      color: var(--teal)
+    }
+
+    .btn-sm {
+      padding: 5px 11px;
+      font-size: 12px;
+      border-radius: 6px
+    }
+
+    .btn-danger {
+      background: var(--red-light);
+      color: var(--red);
+      border: 1px solid rgba(220, 38, 38, .2)
+    }
+
+    .btn-danger:hover {
+      background: var(--red);
+      color: #fff
+    }
+
+    .btn-green {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border)
+    }
+
+    .btn-green:hover {
+      background: var(--border);
+      color: var(--text)
+    }
+
+    .btn-blue {
+      background: var(--blue-light);
+      color: var(--blue);
+      border: 1px solid rgba(29, 78, 216, .2)
+    }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      overflow-x: auto
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px
+    }
+
+    th {
+      text-align: left;
+      padding: 9px 12px;
+      border-bottom: 2px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      white-space: nowrap
+    }
+
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle
+    }
+
+    tr:last-child td {
+      border-bottom: none
+    }
+
+    tr:hover td {
+      background: rgba(73, 123, 137, .04)
+    }
+
+    .td-actions {
+      display: flex;
+      gap: 5px;
+      align-items: center
+    }
+
+    /* ── BADGES ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700
+    }
+
+    .badge-green {
+      background: var(--surface2);
+      color: var(--text)
+    }
+
+    .badge-red {
+      background: var(--red-light);
+      color: var(--red)
+    }
+
+    .badge-orange {
+      background: var(--orange-light);
+      color: var(--orange)
+    }
+
+    .badge-blue {
+      background: var(--blue-light);
+      color: var(--blue)
+    }
+
+    .badge-teal {
+      background: rgba(167, 255, 235, .25);
+      color: var(--teal)
+    }
+
+    .badge-gray {
+      background: var(--surface2);
+      color: var(--muted)
+    }
+
+    .badge-yellow {
+      background: var(--yellow-light);
+      color: var(--yellow)
+    }
+
+    /* ── AVATAR ── */
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0
+    }
+
+    /* ── TOGGLE ── */
+    .tog {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0
+    }
+
+    .tog input {
+      display: none
+    }
+
+    .tog-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 99px;
+      cursor: pointer;
+      transition: background var(--t)
+    }
+
+    .tog-slider::before {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: transform var(--t);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .15)
+    }
+
+    .tog input:checked+.tog-slider {
+      background: var(--teal)
+    }
+
+    .tog input:checked+.tog-slider::before {
+      transform: translateX(18px)
+    }
+
+    .tog-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    /* ── PROGRESS ── */
+    .progress {
+      height: 6px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--teal), var(--teal-dark));
+      transition: width .6s ease
+    }
+
+    /* ── CHART ── */
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 100px;
+      padding-bottom: 22px;
+      position: relative
+    }
+
+    .chart-bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center
+    }
+
+    .chart-bar {
+      width: 100%;
+      border-radius: 5px 5px 0 0;
+      background: linear-gradient(180deg, var(--teal), var(--teal-dark));
+      min-height: 4px;
+      cursor: default
+    }
+
+    .chart-bar:hover {
+      opacity: .8
+    }
+
+    .chart-bar-val {
+      font-size: 9px;
+      color: var(--muted);
+      margin-bottom: 3px
+    }
+
+    /* ── DONUT ── */
+    .donut-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap
+    }
+
+    .donut-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12.5px;
+      margin-bottom: 5px
+    }
+
+    .donut-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    /* ── TRACKING STEPS ── */
+    .track-steps {
+      display: flex;
+      align-items: flex-start;
+      margin: 14px 0 8px;
+      position: relative
+    }
+
+    .track-steps::before {
+      content: '';
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      height: 2px;
+      background: var(--border);
+      z-index: 0
+    }
+
+    .ts-step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      z-index: 1;
+      text-align: center;
+      min-width: 60px
+    }
+
+    .ts-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      transition: all var(--t)
+    }
+
+    .ts-done .ts-dot {
+      background: var(--teal);
+      border-color: var(--teal);
+      color: #fff
+    }
+
+    .ts-current .ts-dot {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: #fff;
+      box-shadow: 0 0 0 3px rgba(194, 65, 12, .15)
+    }
+
+    .ts-lbl {
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.2;
+      max-width: 64px
+    }
+
+    .ts-done .ts-lbl {
+      color: var(--text)
+    }
+
+    /* ── POINTS ── */
+    .pts-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--teal);
+      color: #fff;
+      border-radius: 99px;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 700
+    }
+
+    .pts-level {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: .5px
+    }
+
+    .lv-bronze {
+      background: #fde68a;
+      color: #92400e
+    }
+
+    .lv-silver {
+      background: #f1f5f9;
+      color: #475569
+    }
+
+    .lv-gold {
+      background: #f3f4f6;
+      color: #374151
+    }
+
+    .lv-platinum {
+      background: linear-gradient(135deg, #e0e7ff, #e8eaf6);
+      color: #3730a3
+    }
+
+    [data-theme="dark"] .lv-silver {
+      background: #2a3a4a;
+      color: #8aa8b8
+    }
+
+    [data-theme="dark"] .lv-gold {
+      background: #2a3a4a;
+      color: #8aa8b8
+    }
+
+    /* ── RECO MODULE ── */
+    .reco-module {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 15px;
+      background: var(--bg);
+      border-radius: var(--rs);
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+      gap: 12px;
+      transition: background var(--t)
+    }
+
+    .reco-module-title {
+      font-size: 13.5px;
+      font-weight: 600
+    }
+
+    .reco-module-desc {
+      font-size: 12px;
+      color: var(--muted)
+    }
+
+    /* ── GRID ── */
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px
+    }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .5);
+      z-index: 500;
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px
+    }
+
+    .modal-overlay.open {
+      display: flex;
+      animation: fadeIn .2s ease
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, .25);
+      animation: slideUp .3s ease;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      border: 1px solid var(--border)
+    }
+
+    .modal h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      letter-spacing: -.3px
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--muted);
+      line-height: 1;
+      transition: color var(--t)
+    }
+
+    .modal-close:hover {
+      color: var(--text)
+    }
+
+    .form-group {
+      margin-bottom: 13px
+    }
+
+    .form-label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 5px
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--rs);
+      font-size: 13.5px;
+      font-family: inherit;
+      background: var(--bg);
+      color: var(--text);
+      transition: all var(--t)
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--teal);
+      background: var(--surface);
+      box-shadow: 0 0 0 3px rgba(73, 123, 137, .08)
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      flex-wrap: wrap
+    }
+
+    /* ── TOAST ── */
+    #atoast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1a2e35;
+      color: #fff;
+      padding: 11px 20px;
+      border-radius: var(--rs);
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 9999;
+      transition: transform .35s cubic-bezier(.34, 1.56, .64, 1);
+      white-space: nowrap;
+      box-shadow: var(--sh-lg);
+      border-left: 3px solid var(--teal-light)
+    }
+
+    #atoast.show {
+      transform: translateX(-50%) translateY(0)
+    }
+
+    @media(max-width:780px) {
+      .sidebar {
+        display: none
+      }
+
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr)
+      }
+
+      .grid2 {
+        grid-template-columns: 1fr
+      }
+
+      .form-row {
+        grid-template-columns: 1fr
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ════ LOGIN ════ -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <div class="login-logo">
+        <img src="images/logo.png" alt="Logo" class="login-logo-img" onerror="this.style.display='none'">
+        <div class="login-brand">Digital<span>Store</span></div>
+        <div class="login-badge"><i class="fas fa-shield-alt"></i> <span data-i="adminSpace">Espace
+            Administration</span></div>
+      </div>
+      <div class="login-error" id="loginError" data-i="wrongCreds">Email ou mot de passe incorrect.</div>
+      <div class="login-field">
+        <label class="login-label" data-i="email">Email</label>
+        <input class="login-input" type="email" id="adminEmail" value="admin@digitalstore.dz">
+      </div>
+      <div class="login-field">
+        <label class="login-label" data-i="password">Mot de passe</label>
+        <input class="login-input" type="password" id="adminPass" value="admin123">
+      </div>
+      <button class="login-submit" onclick="doLogin()" data-i="loginBtn">Accéder au tableau de bord →</button>
+      <p class="login-hint" data-i="loginHint">Identifiants démo : admin@digitalstore.dz / admin123</p>
+    </div>
+  </div>
+
+  <!-- ════ APP ════ -->
+  <div id="appShell" style="display:none;flex-direction:row;width:100%;min-height:100vh">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sb-head">
+        <img src="images/logo.png" alt="Logo" class="sb-logo" onerror="this.style.display='none'">
+        <div class="sb-brand">Digital<span>Store</span></div>
+        <div class="sb-admin"><i class="fas fa-user-shield"></i> <span data-i="adminConnected">Admin connecté</span>
+        </div>
+      </div>
+      <nav class="sb-nav">
+        <div class="sb-section" data-i="sbMain">Principal</div>
+        <div class="sb-item active" onclick="showSection('dashboard',this)"><i class="fas fa-chart-line"></i> <span
+            data-i="navDashboard">Tableau de bord</span></div>
+        <div class="sb-section" data-i="sbCatalog">Catalogue</div>
+        <div class="sb-item" onclick="showSection('products',this)"><i class="fas fa-laptop"></i> <span
+            data-i="navProducts">Produits</span> <span class="sb-badge" id="sbProd">0</span></div>
+        <div class="sb-item" onclick="showSection('categories',this)"><i class="fas fa-tags"></i> <span
+            data-i="navCategories">Catégories</span></div>
+        <div class="sb-section" data-i="sbCommerce">Commerce</div>
+        <div class="sb-item" onclick="showSection('orders',this)"><i class="fas fa-shopping-cart"></i> <span
+            data-i="navOrders">Commandes</span> <span class="sb-badge" id="sbOrders">0</span></div>
+        <div class="sb-item" onclick="showSection('delivery',this)"><i class="fas fa-truck"></i> <span
+            data-i="navDelivery">Livraisons</span></div>
+        <div class="sb-item" onclick="showSection('points',this)"><i class="fas fa-star"></i> <span
+            data-i="navPoints">Points fidélité</span></div>
+        <div class="sb-section" data-i="sbUsers">Utilisateurs</div>
+        <div class="sb-item" onclick="showSection('users',this)"><i class="fas fa-users"></i> <span
+            data-i="navUsers">Utilisateurs</span> <span class="sb-badge" id="sbUsers">0</span></div>
+        <div class="sb-item" onclick="showSection('reviews',this)"><i class="fas fa-comment-alt"></i> <span
+            data-i="navReviews">Avis clients</span> <span class="sb-badge" id="sbReviews"
+            style="background:var(--orange)">0</span></div>
+        <div class="sb-section" data-i="sbTools">Outils</div>
+        <div class="sb-item" onclick="showSection('comparator',this)"><i class="fas fa-sliders-h"></i> <span
+            data-i="navComparator">Comparateur</span></div>
+        <div class="sb-item" onclick="showSection('recommendations',this)"><i class="fas fa-magic"></i> <span
+            data-i="navReco">Recommandations</span></div>
+      </nav>
+      <div class="sb-footer">
+        <a href="FenetrePrincipale.html" target="_blank" class="sb-footer-link"><i class="fas fa-external-link-alt"></i>
+          <span data-i="viewSite">Voir le site client</span></a>
+        <div class="sb-logout" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> <span
+            data-i="logout">Déconnexion</span></div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-title" id="topbarTitle">Tableau de bord</div>
+        <div class="topbar-right">
+          <div class="topbar-pill"><i class="fas fa-circle" style="font-size:7px;color:var(--teal)"></i> <span
+              data-i="connected">Connecté</span></div>
+          <select class="lang-sel" onchange="setLang(this.value)" id="langSel">
+            <option value="fr">🇫🇷 Français</option>
+            <option value="en">🇬🇧 English</option>
+            <option value="ar">🇩🇿 العربية</option>
+          </select>
+          <button class="dark-btn" onclick="toggleDark()" id="darkBtn" title="Mode sombre">🌙</button>
+          <button class="topbar-btn" onclick="syncFromStore()"><i class="fas fa-sync-alt"></i> <span
+              data-i="sync">Sync</span></button>
+          <button class="topbar-btn guide-btn" onclick="startTour()" id="guideTourBtn" title="Guide interactif">
+            <i class="fas fa-compass"></i> <span>Guide</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="content">
+
+        <!-- ═══ DASHBOARD ═══ -->
+        <div class="section active" id="sec-dashboard">
+          <div class="stats-row" id="dashStats"></div>
+          <div class="grid2">
+            <div class="box">
+              <div class="box-head">
+                <div class="box-title" data-i="monthlySales">Ventes mensuelles (DA)</div>
+              </div>
+              <div class="chart-bars" id="dashChart"></div>
+            </div>
+            <div class="box">
+              <div class="box-head">
+                <div class="box-title" data-i="catBreakdown">Répartition catégories</div>
+              </div>
+              <div class="donut-row">
+                <canvas id="donutCanvas" width="90" height="90"></canvas>
+                <div id="donutLegend"></div>
+              </div>
+            </div>
+          </div>
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="recentOrders">Commandes récentes</div>
+            </div>
+            <div class="table-wrap">
+              <table id="dashOrdersTable"></table>
+            </div>
+          </div>
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="pendingReviews">Avis en attente</div>
+            </div>
+            <div id="dashPendingReviews"></div>
+          </div>
+        </div>
+
+        <!-- ═══ PRODUCTS ═══ -->
+        <div class="section" id="sec-products">
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="productCatalog">Catalogue produits</div>
+              <button class="btn btn-teal btn-sm" onclick="openAddProd()"><i class="fas fa-plus"></i> <span
+                  data-i="add">Ajouter</span></button>
+            </div>
+            <div class="table-wrap">
+              <table id="prodTable"></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ CATEGORIES ═══ -->
+        <div class="section" id="sec-categories">
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="categoriesTitle">Catégories</div>
+              <button class="btn btn-teal btn-sm" onclick="openAddCat()"><i class="fas fa-plus"></i> <span
+                  data-i="add">Ajouter</span></button>
+            </div>
+            <div class="table-wrap">
+              <table id="catTable"></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ ORDERS ═══ -->
+        <div class="section" id="sec-orders">
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="ordersTitle">Gestion des commandes</div>
+              <select id="orderFilter" onchange="renderOrders()"
+                style="padding:7px 12px;border:1px solid var(--border);border-radius:var(--rs);font-size:12.5px;font-family:inherit;background:var(--bg);color:var(--text)">
+                <option value="" data-i="allStatuses">Tous les statuts</option>
+                <option>Livré</option>
+                <option>En cours</option>
+                <option>Expédié</option>
+                <option>Annulé</option>
+              </select>
+            </div>
+            <div class="table-wrap">
+              <table id="ordersTable"></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ DELIVERY ═══ -->
+        <div class="section" id="sec-delivery">
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="deliveryTitle">Suivi livraisons en temps réel</div>
+            </div>
+            <div id="deliveryList"></div>
+          </div>
+        </div>
+
+        <!-- ═══ POINTS ═══ -->
+        <div class="section" id="sec-points">
+          <div class="grid2" style="margin-bottom:14px">
+            <div class="box" style="margin:0">
+              <div class="box-title" style="margin-bottom:13px" data-i="levelBreakdown">Répartition niveaux</div>
+              <div id="pointsLevelStats"></div>
+            </div>
+            <div class="box" style="margin:0">
+              <div class="box-title" style="margin-bottom:13px" data-i="pointsRulesTitle">Règles d'attribution</div>
+              <div id="pointsRules"></div>
+            </div>
+          </div>
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="pointsPerClient">Points par client</div>
+              <button class="btn btn-teal btn-sm" onclick="openAddPts()"><i class="fas fa-plus"></i> <span
+                  data-i="assignPoints">Attribuer points</span></button>
+            </div>
+            <div class="table-wrap">
+              <table id="pointsTable"></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ USERS ═══ -->
+        <div class="section" id="sec-users">
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="usersTitle">Utilisateurs</div>
+              <button class="btn btn-teal btn-sm" onclick="openAddUser()"><i class="fas fa-plus"></i> <span
+                  data-i="add">Ajouter</span></button>
+            </div>
+            <div class="table-wrap">
+              <table id="usersTable"></table>
+            </div>
+          </div>
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="orderHistory">Historique commandes par client</div>
+            </div>
+            <div id="userHistory"></div>
+          </div>
+        </div>
+
+        <!-- ═══ REVIEWS ═══ -->
+        <div class="section" id="sec-reviews">
+          <div class="stats-row" id="reviewStats"></div>
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="allReviews">Tous les avis</div>
+              <select id="reviewFilter" onchange="renderReviews()"
+                style="padding:7px 12px;border:1px solid var(--border);border-radius:var(--rs);font-size:12.5px;font-family:inherit;background:var(--bg);color:var(--text)">
+                <option value="" data-i="all">Tous</option>
+                <option data-i="pending">En attente</option>
+                <option data-i="approved">Approuvé</option>
+                <option data-i="rejected">Rejeté</option>
+              </select>
+            </div>
+            <div class="table-wrap">
+              <table id="reviewsTable"></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ COMPARATOR ═══ -->
+        <div class="section" id="sec-comparator">
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="comparatorTitle">Critères du comparateur</div>
+              <button class="btn btn-teal btn-sm" onclick="openAddCrit()"><i class="fas fa-plus"></i> <span
+                  data-i="addCriteria">Ajouter critère</span></button>
+            </div>
+            <div class="table-wrap">
+              <table id="critTable"></table>
+            </div>
+          </div>
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="comparePreviewTitle">Aperçu comparaison — Top produits</div>
+            </div>
+            <div id="comparePreview"></div>
+          </div>
+        </div>
+
+        <!-- ═══ RECOMMENDATIONS ═══ -->
+        <div class="section" id="sec-recommendations">
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="recoModulesTitle">Modules de recommandation</div>
+            </div>
+            <div id="recoModules"></div>
+          </div>
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="recoPerUser">Suggestions par client</div>
+            </div>
+            <div class="table-wrap">
+              <table id="recoUserTable"></table>
+            </div>
+          </div>
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title" data-i="recoProductsTitle">Produits recommandés</div>
+            </div>
+            <div id="recoProducts"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ MODALS ══════════ -->
+
+  <!-- Product Modal -->
+  <div class="modal-overlay" id="prodModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('prodModal')">✕</button>
+      <h3 id="prodModalTitle" data-i="addProduct">Ajouter un produit</h3>
+      <input type="hidden" id="prodIdx" value="-1">
+      <div class="form-group"><label class="form-label" data-i="imageUrl">Image URL</label><input class="form-input"
+          id="pImg" placeholder="https://..."></div>
+      <div class="form-group"><label class="form-label" data-i="productName">Nom du produit</label><input
+          class="form-input" id="pName"></div>
+      <div class="form-group"><label class="form-label" data-i="category">Catégorie</label>
+        <select class="form-input" id="pCat">
+          <option>Écrans</option>
+          <option>Processeurs</option>
+          <option>Périphériques</option>
+          <option>GPU</option>
+          <option>Stockage</option>
+          <option>RAM</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label" data-i="priceDA">Prix (DA)</label><input class="form-input"
+            type="number" id="pPrice"></div>
+        <div class="form-group"><label class="form-label" data-i="oldPrice">Ancien prix (DA)</label><input
+            class="form-input" type="number" id="pOld" placeholder="Optionnel"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label" data-i="rating">Note (/5)</label><input class="form-input"
+            type="number" id="pRating" min="1" max="5" step="0.1" value="4.5"></div>
+        <div class="form-group"><label class="form-label" data-i="badge">Badge</label>
+          <select class="form-input" id="pBadge">
+            <option value="">Aucun</option>
+            <option value="new">Nouveau</option>
+            <option value="promo">Promo</option>
+          </select>
+
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label" data-i="specs">Spécifications</label><input class="form-input"
+          id="pSpecs" placeholder="RAM, résolution..."></div>
+
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Stock</label><input class="form-input" type="number"
+            id="pStock" min="0" value="10"></div>
+        <div class="form-group"><label class="form-label">Marque</label><input class="form-input" id="pMarque"
+            placeholder="Samsung, ASUS..."></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-teal" onclick="saveProd()" data-i="save">Enregistrer</button>
+        <button class="btn btn-outline" onclick="closeModal('prodModal')" data-i="cancel">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Modal -->
+  <div class="modal-overlay" id="catModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('catModal')">✕</button>
+      <h3 id="catModalTitle" data-i="addCategory">Ajouter une catégorie</h3>
+      <input type="hidden" id="catIdx" value="-1">
+      <div class="form-group"><label class="form-label" data-i="name">Nom</label><input class="form-input" id="catName">
+      </div>
+      <div class="form-group"><label class="form-label" data-i="icon">Icône (emoji)</label><input class="form-input"
+          id="catIcon" placeholder="🖥️" maxlength="4"></div>
+      <div class="form-group"><label class="form-label" data-i="description">Description</label><textarea
+          class="form-input" id="catDesc" rows="2"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn btn-teal" onclick="saveCat()" data-i="save">Enregistrer</button>
+        <button class="btn btn-outline" onclick="closeModal('catModal')" data-i="cancel">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Modal -->
+  <div class="modal-overlay" id="userModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('userModal')">✕</button>
+      <h3 id="userModalTitle" data-i="addUser">Ajouter un utilisateur</h3>
+      <input type="hidden" id="userIdx" value="-1">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label" data-i="firstName">Prénom</label><input class="form-input"
+            id="uFirst"></div>
+        <div class="form-group"><label class="form-label" data-i="lastName">Nom</label><input class="form-input"
+            id="uLast"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="uEmail">
+      </div>
+      <div class="form-group"><label class="form-label" data-i="phone">Téléphone</label><input class="form-input"
+          id="uPhone" placeholder="0550 000 000"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label" data-i="role">Rôle</label>
+          <select class="form-input" id="uRole">
+            <option>Client</option>
+            <option>Admin</option>
+            <option>Livreur</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label" data-i="status">Statut</label>
+          <select class="form-input" id="uStatus">
+            <option value="1" data-i="active">Actif</option>
+            <option value="0" data-i="inactive">Inactif</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-teal" onclick="saveUser()" data-i="save">Enregistrer</button>
+        <button class="btn btn-outline" onclick="closeModal('userModal')" data-i="cancel">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Points Modal -->
+  <div class="modal-overlay" id="ptsModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('ptsModal')">✕</button>
+      <h3 data-i="assignPointsTitle">Attribuer des points</h3>
+      <div class="form-group"><label class="form-label" data-i="client">Client</label><select class="form-input"
+          id="ptsUser"></select></div>
+      <div class="form-group"><label class="form-label" data-i="pointsToAdd">Points à ajouter</label><input
+          class="form-input" type="number" id="ptsAmt" min="1" value="100"></div>
+      <div class="form-group"><label class="form-label" data-i="reason">Motif</label><input class="form-input"
+          id="ptsMotive" placeholder="Achat, parrainage..."></div>
+      <div class="modal-actions">
+        <button class="btn btn-teal" onclick="savePts()" data-i="assign">Attribuer</button>
+        <button class="btn btn-outline" onclick="closeModal('ptsModal')" data-i="cancel">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Criteria Modal -->
+  <div class="modal-overlay" id="critModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('critModal')">✕</button>
+      <h3 id="critModalTitle" data-i="addCriteria">Ajouter un critère</h3>
+      <input type="hidden" id="critIdx" value="-1">
+      <div class="form-group"><label class="form-label" data-i="criteriaName">Nom du critère</label><input
+          class="form-input" id="critName" placeholder="Ex: RAM (Go)"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label" data-i="type">Type</label>
+          <select class="form-input" id="critType">
+            <option>Numérique</option>
+            <option>Texte</option>
+            <option>Booléen</option>
+            <option>Liste</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label" data-i="priority">Priorité (1-5)</label><input
+            class="form-input" type="number" id="critPrio" min="1" max="5" value="3"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-teal" onclick="saveCrit()" data-i="save">Enregistrer</button>
+        <button class="btn btn-outline" onclick="closeModal('critModal')" data-i="cancel">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="atoast"></div>
+
+  <!-- ══ TOUR OVERLAY ══ -->
+  <div id="tourBackdrop" style="display:none" onclick="skipTour()"></div>
+  <div id="tourBox" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="tour-step-badge"><i class="fas fa-compass"></i> <span id="tourStepLabel">Étape 1 / 11</span></div>
+      <button class="tour-btn-skip" onclick="skipTour()" style="padding:4px 10px;font-size:11px"><i
+          class="fas fa-times"></i> <span id="tourSkipLabel">Quitter</span></button>
+    </div>
+    <div class="tour-title" id="tourTitle"></div>
+    <div class="tour-desc" id="tourDesc"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;gap:8px">
+      <div class="tour-progress" id="tourDots"></div>
+      <div style="display:flex;gap:8px">
+        <button class="tour-btn tour-btn-prev" id="tourPrev" onclick="tourPrev()"><i class="fas fa-arrow-left"></i>
+          <span id="tourPrevLabel">Précédent</span></button>
+        <button class="tour-btn tour-btn-next" id="tourNext" onclick="tourNext()"><span
+            id="tourNextLabel">Suivant</span> <i class="fas fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    (function checkAdminAccess() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenFromUrl = urlParams.get('token');
+
+      if (tokenFromUrl) {
+        localStorage.setItem('ds_admin_token', tokenFromUrl);
+        window.history.replaceState({}, '', window.location.pathname);
+        return; // token reçu → ok
+      }
+
+      const token = localStorage.getItem('ds_admin_token');
+      if (!token) {
+        window.location.href = '/FenetrePrincipale.html';
+      }
+    })();
+
+
+
+
+    /* ═══════════════════════════════════════
+       TRANSLATIONS
+    ═══════════════════════════════════════ */
+    const TRANSLATIONS = {
+      fr: {
+        adminSpace: 'Espace Administration', wrongCreds: 'Email ou mot de passe incorrect.',
+        email: 'Email', password: 'Mot de passe', loginBtn: 'Accéder au tableau de bord →',
+        loginHint: 'Identifiants démo : admin@digitalstore.dz / admin123',
+        adminConnected: 'Admin connecté', connected: 'Connecté', sync: 'Sync',
+        sbMain: 'Principal', sbCatalog: 'Catalogue', sbCommerce: 'Commerce', sbUsers: 'Utilisateurs', sbTools: 'Outils',
+        navDashboard: 'Tableau de bord', navProducts: 'Produits', navCategories: 'Catégories',
+        navOrders: 'Commandes', navDelivery: 'Livraisons', navPoints: 'Points fidélité',
+        navUsers: 'Utilisateurs', navReviews: 'Avis clients', navComparator: 'Comparateur', navReco: 'Recommandations',
+        viewSite: 'Voir le site client', logout: 'Déconnexion',
+        monthlySales: 'Ventes mensuelles (DA)', catBreakdown: 'Répartition catégories',
+        recentOrders: 'Commandes récentes', pendingReviews: 'Avis en attente',
+        productCatalog: 'Catalogue produits', categoriesTitle: 'Catégories',
+        ordersTitle: 'Gestion des commandes', allStatuses: 'Tous les statuts',
+        deliveryTitle: 'Suivi livraisons en temps réel',
+        levelBreakdown: 'Répartition niveaux', pointsRulesTitle: "Règles d'attribution",
+        pointsPerClient: 'Points par client', assignPoints: 'Attribuer points',
+        usersTitle: 'Utilisateurs', orderHistory: 'Historique commandes par client',
+        allReviews: 'Tous les avis', all: 'Tous', pending: 'En attente', approved: 'Approuvé', rejected: 'Rejeté',
+        comparatorTitle: 'Critères du comparateur', addCriteria: 'Ajouter critère',
+        comparePreviewTitle: 'Aperçu comparaison — Top produits',
+        recoModulesTitle: 'Modules de recommandation', recoPerUser: 'Suggestions par client',
+        recoProductsTitle: 'Produits recommandés',
+        add: 'Ajouter', save: 'Enregistrer', cancel: 'Annuler', assign: 'Attribuer',
+        addProduct: 'Ajouter un produit', imageUrl: 'Image URL', productName: 'Nom du produit',
+        category: 'Catégorie', priceDA: 'Prix (DA)', oldPrice: 'Ancien prix (DA)',
+        rating: 'Note (/5)', badge: 'Badge', specs: 'Spécifications',
+        addCategory: 'Ajouter une catégorie', name: 'Nom', icon: 'Icône (emoji)', description: 'Description',
+        addUser: 'Ajouter un utilisateur', firstName: 'Prénom', lastName: 'Nom',
+        phone: 'Téléphone', role: 'Rôle', status: 'Statut', active: 'Actif', inactive: 'Inactif',
+        assignPointsTitle: 'Attribuer des points', client: 'Client', pointsToAdd: 'Points à ajouter', reason: 'Motif',
+        criteriaName: 'Nom du critère', type: 'Type', priority: 'Priorité (1-5)',
+        darkMode: 'Mode sombre', lightMode: 'Mode clair',
+        thName: 'Nom', thCategory: 'Catégorie', thPrice: 'Prix', thRating: 'Note', thBadge: 'Badge', thActions: 'Actions',
+        thIcon: 'Icône', thDescription: 'Description', thProducts: 'Produits',
+        thID: 'ID', thClient: 'Client', thItems: 'Produits', thTotal: 'Total', thDate: 'Date', thStatus: 'Statut', thEdit: 'Modifier',
+        thPoints: 'Points', thLevel: 'Niveau', thRewards: 'Récompenses dispo.',
+        thEmail: 'Email', thPhone: 'Téléphone', thRole: 'Rôle',
+        thProduct: 'Produit', thComment: 'Commentaire',
+        thCriteria: 'Critère', thType: 'Type', thPriority: 'Priorité', thActive: 'Actif',
+        thHistory: 'Historique', thTrending: 'Tendances', thPromoAlerts: 'Alertes promo', thActiveSugg: 'Suggestions actives',
+        noReviewsPending: 'Aucun avis en attente ✓', syncedMsg: '✓ Produits synchronisés depuis la boutique',
+        noBoutiqueData: 'ℹ️ Aucune donnée boutique — données démo chargées',
+        deleted: 'Supprimé', saved: '✓ Enregistré', statusUpdated: 'Statut mis à jour',
+        stepAdvanced: 'Étape avancée ✓', moduleEnabled: 'Module activé', moduleDisabled: 'Module désactivé',
+        critEnabled: 'Critère activé', critDisabled: 'Critère désactivé',
+        userActivated: 'Utilisateur activé', userDeactivated: 'Utilisateur désactivé',
+        confirmDelete: 'Supprimer ?', confirmDeleteProd: 'Supprimer ce produit ?',
+        confirmDeleteUser: 'Supprimer cet utilisateur ?', confirmDeleteReview: 'Supprimer cet avis ?',
+        ptsAssigned: 'points attribués à', advanceStep: 'Avancer', delivered: '✓ Livré',
+        approve: '✓ Approuver', reject: '✕ Rejeter', reviewApproved: '✓ Avis approuvé', reviewRejected: 'Avis rejeté',
+        noHistory: 'Aucun historique disponible',
+        ordersCount: 'commande(s)', noReco: 'Aucune',
+      },
+      en: {
+        adminSpace: 'Administration Area', wrongCreds: 'Wrong email or password.',
+        email: 'Email', password: 'Password', loginBtn: 'Access Dashboard →',
+        loginHint: 'Demo credentials: admin@digitalstore.dz / admin123',
+        adminConnected: 'Admin connected', connected: 'Connected', sync: 'Sync',
+        sbMain: 'Main', sbCatalog: 'Catalog', sbCommerce: 'Commerce', sbUsers: 'Users', sbTools: 'Tools',
+        navDashboard: 'Dashboard', navProducts: 'Products', navCategories: 'Categories',
+        navOrders: 'Orders', navDelivery: 'Deliveries', navPoints: 'Loyalty Points',
+        navUsers: 'Users', navReviews: 'Reviews', navComparator: 'Comparator', navReco: 'Recommendations',
+        viewSite: 'View store', logout: 'Logout',
+        monthlySales: 'Monthly Sales (DA)', catBreakdown: 'Category Breakdown',
+        recentOrders: 'Recent Orders', pendingReviews: 'Pending Reviews',
+        productCatalog: 'Product Catalog', categoriesTitle: 'Categories',
+        ordersTitle: 'Order Management', allStatuses: 'All statuses',
+        deliveryTitle: 'Real-Time Delivery Tracking',
+        levelBreakdown: 'Level Breakdown', pointsRulesTitle: 'Attribution Rules',
+        pointsPerClient: 'Points per Client', assignPoints: 'Assign Points',
+        usersTitle: 'Users', orderHistory: 'Order History by Client',
+        allReviews: 'All Reviews', all: 'All', pending: 'Pending', approved: 'Approved', rejected: 'Rejected',
+        comparatorTitle: 'Comparator Criteria', addCriteria: 'Add Criterion',
+        comparePreviewTitle: 'Comparison Preview — Top Products',
+        recoModulesTitle: 'Recommendation Modules', recoPerUser: 'Suggestions per Client',
+        recoProductsTitle: 'Recommended Products',
+        add: 'Add', save: 'Save', cancel: 'Cancel', assign: 'Assign',
+        addProduct: 'Add a Product', imageUrl: 'Image URL', productName: 'Product Name',
+        category: 'Category', priceDA: 'Price (DA)', oldPrice: 'Old Price (DA)',
+        rating: 'Rating (/5)', badge: 'Badge', specs: 'Specifications',
+        addCategory: 'Add a Category', name: 'Name', icon: 'Icon (emoji)', description: 'Description',
+        addUser: 'Add a User', firstName: 'First Name', lastName: 'Last Name',
+        phone: 'Phone', role: 'Role', status: 'Status', active: 'Active', inactive: 'Inactive',
+        assignPointsTitle: 'Assign Points', client: 'Client', pointsToAdd: 'Points to Add', reason: 'Reason',
+        criteriaName: 'Criterion Name', type: 'Type', priority: 'Priority (1-5)',
+        darkMode: 'Dark Mode', lightMode: 'Light Mode',
+        thName: 'Name', thCategory: 'Category', thPrice: 'Price', thRating: 'Rating', thBadge: 'Badge', thActions: 'Actions',
+        thIcon: 'Icon', thDescription: 'Description', thProducts: 'Products',
+        thID: 'ID', thClient: 'Client', thItems: 'Products', thTotal: 'Total', thDate: 'Date', thStatus: 'Status', thEdit: 'Edit',
+        thPoints: 'Points', thLevel: 'Level', thRewards: 'Available Rewards',
+        thEmail: 'Email', thPhone: 'Phone', thRole: 'Role',
+        thProduct: 'Product', thComment: 'Comment',
+        thCriteria: 'Criterion', thType: 'Type', thPriority: 'Priority', thActive: 'Active',
+        thHistory: 'History', thTrending: 'Trending', thPromoAlerts: 'Promo Alerts', thActiveSugg: 'Active Suggestions',
+        noReviewsPending: 'No pending reviews ✓', syncedMsg: '✓ Products synced from store',
+        noBoutiqueData: 'ℹ️ No store data — demo data loaded',
+        deleted: 'Deleted', saved: '✓ Saved', statusUpdated: 'Status updated',
+        stepAdvanced: 'Step advanced ✓', moduleEnabled: 'Module enabled', moduleDisabled: 'Module disabled',
+        critEnabled: 'Criterion enabled', critDisabled: 'Criterion disabled',
+        userActivated: 'User activated', userDeactivated: 'User deactivated',
+        confirmDelete: 'Delete?', confirmDeleteProd: 'Delete this product?',
+        confirmDeleteUser: 'Delete this user?', confirmDeleteReview: 'Delete this review?',
+        ptsAssigned: 'points assigned to', advanceStep: 'Advance', delivered: '✓ Delivered',
+        approve: '✓ Approve', reject: '✕ Reject', reviewApproved: '✓ Review approved', reviewRejected: 'Review rejected',
+        noHistory: 'No history available',
+        ordersCount: 'order(s)', noReco: 'None',
+      },
+      ar: {
+        adminSpace: 'لوحة الإدارة', wrongCreds: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
+        email: 'البريد الإلكتروني', password: 'كلمة المرور', loginBtn: 'الدخول إلى لوحة التحكم ←',
+        loginHint: 'بيانات التجربة: admin@digitalstore.dz / admin123',
+        adminConnected: 'المشرف متصل', connected: 'متصل', sync: 'مزامنة',
+        sbMain: 'الرئيسية', sbCatalog: 'الكتالوج', sbCommerce: 'التجارة', sbUsers: 'المستخدمون', sbTools: 'الأدوات',
+        navDashboard: 'لوحة التحكم', navProducts: 'المنتجات', navCategories: 'الفئات',
+        navOrders: 'الطلبات', navDelivery: 'التوصيل', navPoints: 'نقاط الولاء',
+        navUsers: 'المستخدمون', navReviews: 'تقييمات العملاء', navComparator: 'المقارنة', navReco: 'التوصيات',
+        viewSite: 'عرض الموقع', logout: 'تسجيل الخروج',
+        monthlySales: 'المبيعات الشهرية (د.ج)', catBreakdown: 'توزيع الفئات',
+        recentOrders: 'الطلبات الأخيرة', pendingReviews: 'التقييمات المعلقة',
+        productCatalog: 'كتالوج المنتجات', categoriesTitle: 'الفئات',
+        ordersTitle: 'إدارة الطلبات', allStatuses: 'جميع الحالات',
+        deliveryTitle: 'تتبع التوصيل في الوقت الفعلي',
+        levelBreakdown: 'توزيع المستويات', pointsRulesTitle: 'قواعد منح النقاط',
+        pointsPerClient: 'النقاط لكل عميل', assignPoints: 'منح نقاط',
+        usersTitle: 'المستخدمون', orderHistory: 'سجل الطلبات لكل عميل',
+        allReviews: 'جميع التقييمات', all: 'الكل', pending: 'قيد الانتظار', approved: 'معتمد', rejected: 'مرفوض',
+        comparatorTitle: 'معايير المقارنة الذكية', addCriteria: 'إضافة معيار',
+        comparePreviewTitle: 'معاينة المقارنة — أفضل المنتجات',
+        recoModulesTitle: 'وحدات التوصية', recoPerUser: 'الاقتراحات لكل مستخدم',
+        recoProductsTitle: 'المنتجات الموصى بها',
+        add: 'إضافة', save: 'حفظ', cancel: 'إلغاء', assign: 'منح',
+        addProduct: 'إضافة منتج', imageUrl: 'رابط الصورة', productName: 'اسم المنتج',
+        category: 'الفئة', priceDA: 'السعر (د.ج)', oldPrice: 'السعر القديم (د.ج)',
+        rating: 'التقييم (/5)', badge: 'الشارة', specs: 'المواصفات',
+        addCategory: 'إضافة فئة', name: 'الاسم', icon: 'الأيقونة (إيموجي)', description: 'الوصف',
+        addUser: 'إضافة مستخدم', firstName: 'الاسم الأول', lastName: 'اللقب',
+        phone: 'الهاتف', role: 'الدور', status: 'الحالة', active: 'نشط', inactive: 'غير نشط',
+        assignPointsTitle: 'منح نقاط', client: 'العميل', pointsToAdd: 'النقاط المراد إضافتها', reason: 'السبب',
+        criteriaName: 'اسم المعيار', type: 'النوع', priority: 'الأولوية (1-5)',
+        darkMode: 'الوضع الداكن', lightMode: 'الوضع الفاتح',
+        thName: 'الاسم', thCategory: 'الفئة', thPrice: 'السعر', thRating: 'التقييم', thBadge: 'الشارة', thActions: 'الإجراءات',
+        thIcon: 'الأيقونة', thDescription: 'الوصف', thProducts: 'المنتجات',
+        thID: 'الرقم', thClient: 'العميل', thItems: 'المنتجات', thTotal: 'الإجمالي', thDate: 'التاريخ', thStatus: 'الحالة', thEdit: 'تعديل',
+        thPoints: 'النقاط', thLevel: 'المستوى', thRewards: 'المكافآت المتاحة',
+        thEmail: 'البريد', thPhone: 'الهاتف', thRole: 'الدور',
+        thProduct: 'المنتج', thComment: 'التعليق',
+        thCriteria: 'المعيار', thType: 'النوع', thPriority: 'الأولوية', thActive: 'نشط',
+        thHistory: 'السجل', thTrending: 'الشائع', thPromoAlerts: 'تنبيهات العروض', thActiveSugg: 'الاقتراحات النشطة',
+        noReviewsPending: 'لا توجد تقييمات معلقة ✓', syncedMsg: '✓ تمت مزامنة المنتجات من المتجر',
+        noBoutiqueData: 'ℹ️ لا توجد بيانات متجر — تم تحميل البيانات التجريبية',
+        deleted: 'تم الحذف', saved: '✓ تم الحفظ', statusUpdated: 'تم تحديث الحالة',
+        stepAdvanced: 'تم التقدم ✓', moduleEnabled: 'تم تفعيل الوحدة', moduleDisabled: 'تم تعطيل الوحدة',
+        critEnabled: 'تم تفعيل المعيار', critDisabled: 'تم تعطيل المعيار',
+        userActivated: 'تم تفعيل المستخدم', userDeactivated: 'تم تعطيل المستخدم',
+        confirmDelete: 'حذف؟', confirmDeleteProd: 'حذف هذا المنتج؟',
+        confirmDeleteUser: 'حذف هذا المستخدم؟', confirmDeleteReview: 'حذف هذا التقييم؟',
+        ptsAssigned: 'نقطة ممنوحة لـ', advanceStep: 'تقدم', delivered: '✓ تم التسليم',
+        approve: '✓ موافقة', reject: '✕ رفض', reviewApproved: '✓ تم اعتماد التقييم', reviewRejected: 'تم رفض التقييم',
+        noHistory: 'لا يوجد سجل متاح',
+        ordersCount: 'طلب/طلبات', noReco: 'لا شيء',
+      }
+    };
+
+    let currentLang = 'fr';
+    function t(key) { return TRANSLATIONS[currentLang][key] || TRANSLATIONS.fr[key] || key; }
+
+    function setLang(lang) {
+      currentLang = lang;
+      const isAr = lang === 'ar';
+      document.documentElement.lang = lang;
+      document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+      document.querySelectorAll('[data-i]').forEach(el => {
+        const key = el.dataset.i;
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = t(key);
+        else el.textContent = t(key);
+      });
+      renderSection();
+      localStorage.setItem('ds_lang', lang);
+    }
+
+    let isDark = false;
+    function toggleDark() {
+      isDark = !isDark;
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : '');
+      document.getElementById('darkBtn').textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('ds_dark', isDark ? '1' : '');
+    }
+    function initTheme() {
+      if (localStorage.getItem('ds_dark') === '1') { isDark = true; document.documentElement.setAttribute('data-theme', 'dark'); document.getElementById('darkBtn').textContent = '☀️'; }
+      const lang = localStorage.getItem('ds_lang') || 'fr';
+      document.getElementById('langSel').value = lang;
+      setLang(lang);
+    }
+
+    function doLogin() {
+      const e = document.getElementById('adminEmail').value.trim();
+      const p = document.getElementById('adminPass').value;
+      if (e === 'admin@digitalstore.dz' && p === 'admin123') {
+        document.getElementById('loginScreen').style.display = 'none';
+        const app = document.getElementById('appShell');
+        app.style.display = 'flex';
+        initApp();
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+      }
+    }
+    document.getElementById('adminPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    function doLogout() { document.getElementById('appShell').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex'; }
+
+    const DP = [
+      { id: 0, name: 'ASUS ProArt Display 4K', cat: 'Écrans', price: 749900, oldPrice: 849900, rating: 4.8, ratingCount: 142, badge: 'new', stock: true, img: '', specs: '32" IPS 4K · 60Hz · HDR600 · USB-C 96W', desc: '', specItems: {}, reviews: [], imgs: [] },
+      { id: 1, name: 'Samsung Odyssey G7', cat: 'Écrans', price: 489900, oldPrice: null, rating: 4.6, ratingCount: 89, badge: null, stock: true, img: '', specs: '27" VA Curved 1440p · 240Hz · G-Sync', desc: '', specItems: {}, reviews: [], imgs: [] },
+      { id: 2, name: 'Keychron Q3 Pro', cat: 'Périphériques', price: 184900, oldPrice: null, rating: 4.9, ratingCount: 204, badge: 'new', stock: true, img: '', specs: 'TKL · Hot-swap · Aluminium · Bluetooth', desc: '', specItems: {}, reviews: [], imgs: [] },
+      { id: 3, name: 'Logitech MX Master 3S', cat: 'Périphériques', price: 84900, oldPrice: 99900, rating: 4.7, ratingCount: 512, badge: 'promo', stock: true, img: '', specs: '8000 DPI · Molette MagSpeed', desc: '', specItems: {}, reviews: [], imgs: [] },
+      { id: 4, name: 'GeForce RTX 4070 Super', cat: 'GPU', price: 629900, oldPrice: 699900, rating: 4.8, ratingCount: 178, badge: 'promo', stock: true, img: '', specs: '12 GB GDDR6X · DLSS 3 · Ray Tracing', desc: '', specItems: {}, reviews: [], imgs: [] },
+      { id: 5, name: 'AMD Ryzen 9 7950X', cat: 'Processeurs', price: 549900, oldPrice: null, rating: 4.9, ratingCount: 93, badge: null, stock: true, img: '', specs: '16 cœurs · 32T · 5.7 GHz · AM5', desc: '', specItems: {}, reviews: [], imgs: [] },
+      { id: 6, name: 'Samsung 990 Pro 2 TB', cat: 'Stockage', price: 149900, oldPrice: null, rating: 4.8, ratingCount: 341, badge: 'new', stock: true, img: '', specs: 'NVMe PCIe 4.0 · 7450 Mo/s', desc: '', specItems: {}, reviews: [], imgs: [] },
+      { id: 7, name: 'G.Skill Trident Z5 Neo', cat: 'RAM', price: 134900, oldPrice: null, rating: 4.7, ratingCount: 167, badge: null, stock: true, img: '', specs: '32 GB DDR5-6000 · CL30 · RGB', desc: '', specItems: {}, reviews: [], imgs: [] },
+    ];
+    const DU = [
+      { id: 1, first: 'Mehdi', last: 'Benali', email: 'mehdi@email.com', phone: '0550 111 222', role: 'Client', active: true, pts: 1250, orders: ['#1024', '#1026'] },
+      { id: 2, first: 'Rania', last: 'K.', email: 'rania@email.com', phone: '0661 333 444', role: 'Client', active: true, pts: 430, orders: ['#1025'] },
+      { id: 3, first: 'Karim', last: 'M.', email: 'karim@email.com', phone: '0770 555 666', role: 'Livreur', active: true, pts: 80, orders: [] },
+      { id: 4, first: 'Amira', last: 'L.', email: 'amira@email.com', phone: '0550 777 888', role: 'Client', active: false, pts: 0, orders: [] },
+      { id: 5, first: 'Youcef', last: 'T.', email: 'youcef@admin.dz', phone: '0561 999 000', role: 'Admin', active: true, pts: 2100, orders: ['#1027'] },
+      { id: 6, first: 'Sara', last: 'K.', email: 'sara@email.com', phone: '0770 123 456', role: 'Client', active: true, pts: 720, orders: ['#1028'] },
+    ];
+    const DO = [
+      { id: '#1024', client: 'Mehdi Benali', items: 'ASUS ProArt 4K', total: 749900, date: '2026-01-10', status: 'Livré' },
+      { id: '#1025', client: 'Rania K.', items: 'Keychron Q3 Pro', total: 184900, date: '2026-01-14', status: 'En cours' },
+      { id: '#1026', client: 'Mehdi Benali', items: 'RTX 4070 Super', total: 629900, date: '2026-01-15', status: 'Expédié' },
+      { id: '#1027', client: 'Youcef T.', items: 'Ryzen 9 7950X', total: 549900, date: '2026-01-16', status: 'Annulé' },
+      { id: '#1028', client: 'Sara K.', items: 'Samsung 990 Pro', total: 149900, date: '2026-01-17', status: 'Livré' },
+    ];
+    const DR = [
+      { id: 1, client: 'Mehdi', product: 'ASUS ProArt Display 4K', rating: 5, text: 'Magnifique écran, les couleurs sont parfaites.', status: 'Approuvé', date: '15 janv. 2026' },
+      { id: 2, client: 'Rania', product: 'Keychron Q3 Pro', rating: 5, text: "Le meilleur clavier que j'aie jamais eu.", status: 'Approuvé', date: '18 janv. 2026' },
+      { id: 3, client: 'Sara', product: 'Samsung 990 Pro', rating: 3, text: 'Bon SSD mais emballage abîmé.', status: 'En attente', date: '19 janv. 2026' },
+      { id: 4, client: 'Youcef', product: 'RTX 4070 Super', rating: 5, text: 'Monstre de puissance !', status: 'En attente', date: '20 janv. 2026' },
+    ];
+    const DC = [{ name: 'Écrans', icon: '🖥️', desc: 'Moniteurs' }, { name: 'Processeurs', icon: '🔲', desc: 'CPU' }, { name: 'Périphériques', icon: '⌨️', desc: 'Claviers/souris' }, { name: 'GPU', icon: '🎮', desc: 'Cartes graphiques' }, { name: 'Stockage', icon: '💾', desc: 'SSD/HDD' }, { name: 'RAM', icon: '🧠', desc: 'Mémoire vive' }];
+    const DCRIT = [{ name: 'Prix (DA)', type: 'Numérique', priority: 5, active: true }, { name: 'RAM (Go)', type: 'Numérique', priority: 4, active: true }, { name: 'Marque', type: 'Texte', priority: 3, active: true }, { name: 'SSD inclus', type: 'Booléen', priority: 4, active: false }, { name: 'Résolution', type: 'Liste', priority: 2, active: true }];
+    const DDEL = [
+      { id: '#1025', client: 'Rania K.', addr: '12 Rue Didouche, Alger', step: 2, steps: ['Confirmé', 'Préparé', 'Expédié', 'En route', 'Livré'] },
+      { id: '#1026', client: 'Mehdi Benali', addr: '5 Bd Zirout, Oran', step: 3, steps: ['Confirmé', 'Préparé', 'Expédié', 'En route', 'Livré'] },
+    ];
+    const DRECO = [
+      { name: 'Suggestions basées sur l\'historique d\'achat', desc: 'Analyse les achats passés', active: true },
+      { name: 'Produits populaires dans la catégorie', desc: 'Top ventes de la même catégorie', active: true },
+      { name: 'Alertes promotions personnalisées', desc: 'Notifie quand un produit wishlisté est en promo', active: false },
+      { name: 'Articles fréquemment achetés ensemble', desc: 'Basé sur les associations de panier', active: true },
+      { name: 'Réactivation panier abandonné', desc: 'Relance les clients avec panier non validé', active: false },
+    ];
+
+    let products, users, orders, reviews, categories, criteria, deliveries, recoModules;
+
+    function loadData() {
+      products = JSON.parse(localStorage.getItem('ds_products')) || DP;
+      users = JSON.parse(localStorage.getItem('ds_users')) || DU;
+      orders = JSON.parse(localStorage.getItem('ds_orders')) || DO;
+      reviews = JSON.parse(localStorage.getItem('ds_reviews')) || DR;
+      categories = JSON.parse(localStorage.getItem('ds_categories')) || DC;
+      criteria = JSON.parse(localStorage.getItem('ds_criteria')) || DCRIT;
+      deliveries = JSON.parse(localStorage.getItem('ds_deliveries')) || DDEL;
+      recoModules = JSON.parse(localStorage.getItem('ds_reco')) || DRECO;
+      users.forEach(u => { if (!u.pts) u.pts = 0; });
+    }
+    function saveData(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+    function syncFromStore() {
+      const stored = localStorage.getItem('articles');
+      if (stored) {
+        try {
+          const arr = JSON.parse(stored);
+          if (arr.length) {
+            arr.forEach((a, i) => { if (a.id == null) a.id = Date.now() + i; if (!a.rating) a.rating = 4.5; if (!a.stock) a.stock = true; if (!a.imgs) a.imgs = []; if (!a.reviews) a.reviews = []; if (!a.specItems) a.specItems = {}; if (!a.desc) a.desc = ''; });
+            products = arr; saveData('ds_products', products); toast(t('syncedMsg')); renderSection(); return;
+          }
+        } catch (e) { }
+      }
+      toast(t('noBoutiqueData'));
+    }
+
+    function toast(msg) { const el = document.getElementById('atoast'); el.textContent = msg; el.classList.add('show'); clearTimeout(window._toast); window._toast = setTimeout(() => el.classList.remove('show'), 2800); }
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+    function avatarColor(n) { const c = ['#497b89', '#3a6475', '#4b5563', '#1d4ed8', '#c2410c', '#7c3aed', '#b45309']; let h = 0; for (const ch of (n || '?')) h = (h + ch.charCodeAt(0)) % c.length; return c[h]; }
+    function initials(f, l) { return ((f || '?')[0] + (l || '?')[0]).toUpperCase(); }
+    function levelOf(pts) { return pts >= 2000 ? 'Platine' : pts >= 1000 ? 'Or' : pts >= 400 ? 'Argent' : 'Bronze'; }
+    function levelClass(lv) { return { Bronze: 'lv-bronze', Argent: 'lv-silver', Or: 'lv-gold', Platine: 'lv-platinum' }[lv] || 'lv-bronze'; }
+    function statusBadge(st) {
+      const m = { Livré: 'badge-teal', 'En cours': 'badge-orange', Expédié: 'badge-blue', Annulé: 'badge-red', Approuvé: 'badge-teal', 'En attente': 'badge-yellow', Rejeté: 'badge-red', Actif: 'badge-teal', Inactif: 'badge-gray' };
+      return `<span class="badge ${m[st] || 'badge-gray'}">${st}</span>`;
+    }
+    function stars(n) { let s = ''; for (let i = 1; i <= 5; i++) s += `<span style="color:${i <= n ? '#f59e0b' : 'var(--border)'}">★</span>`; return s; }
+
+    let currentSection = 'dashboard';
+    function showSection(id, el) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById('sec-' + id).classList.add('active');
+      document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+      el.classList.add('active');
+      const titleKeys = { dashboard: 'navDashboard', products: 'navProducts', categories: 'navCategories', orders: 'navOrders', delivery: 'navDelivery', points: 'navPoints', users: 'navUsers', reviews: 'navReviews', comparator: 'navComparator', recommendations: 'navReco' };
+      document.getElementById('topbarTitle').textContent = t(titleKeys[id] || id);
+      currentSection = id; renderSection();
+    }
+    function renderSection() {
+      updateBadges();
+      const r = { dashboard: renderDashboard, products: renderProducts, categories: renderCategories, orders: renderOrders, delivery: renderDelivery, points: renderPoints, users: renderUsers, reviews: renderReviews, comparator: renderComparator, recommendations: renderRecommendations };
+      if (r[currentSection]) r[currentSection]();
+    }
+    function updateBadges() {
+      document.getElementById('sbProd').textContent = products.length;
+      document.getElementById('sbOrders').textContent = orders.length;
+      document.getElementById('sbUsers').textContent = users.length;
+      document.getElementById('sbReviews').textContent = reviews.filter(r => r.status === 'En attente').length;
+    }
+
+    function renderDashboard() {
+      const pending = reviews.filter(r => r.status === 'En attente').length;
+      const delivered = orders.filter(o => o.status === 'Livré').length;
+      const avgRating = (products.reduce((s, p) => s + (p.rating || 0), 0) / Math.max(products.length, 1)).toFixed(1);
+      document.getElementById('dashStats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon si-teal"><i class="fas fa-boxes"></i></div><div class="stat-val">${products.length}</div><div class="stat-lbl">${t('productCatalog')}</div></div>
+    <div class="stat-card"><div class="stat-icon si-blue"><i class="fas fa-shopping-cart"></i></div><div class="stat-val">${orders.length}</div><div class="stat-lbl">${t('navOrders')}</div></div>
+    <div class="stat-card"><div class="stat-icon si-teal"><i class="fas fa-users"></i></div><div class="stat-val">${users.length}</div><div class="stat-lbl">${t('navUsers')}</div></div>
+    <div class="stat-card"><div class="stat-icon si-orange"><i class="fas fa-comment-alt"></i></div><div class="stat-val">${pending}</div><div class="stat-lbl">${t('pendingReviews')}</div></div>
+    <div class="stat-card"><div class="stat-icon si-teal"><i class="fas fa-check-circle"></i></div><div class="stat-val">${delivered}</div><div class="stat-lbl">${t('delivered')}</div></div>
+    <div class="stat-card"><div class="stat-icon si-yellow"><i class="fas fa-star"></i></div><div class="stat-val">${avgRating}</div><div class="stat-lbl">${t('rating')}</div></div>
+  `;
+      const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'];
+      const vals = [42000, 68000, 55000, 91000, 73000, 85000];
+      const max = Math.max(...vals);
+      document.getElementById('dashChart').innerHTML = vals.map((v, i) => `
+    <div class="chart-bar-wrap">
+      <div class="chart-bar-val">${(v / 1000).toFixed(0)}k</div>
+      <div class="chart-bar" style="height:${Math.round((v / max) * 80)}px" title="${v.toLocaleString()} DA"></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px">${months[i]}</div>
+    </div>`).join('');
+      drawDonut();
+      document.getElementById('dashOrdersTable').innerHTML = `
+    <thead><tr><th>${t('thID')}</th><th>${t('thClient')}</th><th>${t('thItems')}</th><th>${t('thTotal')}</th><th>${t('thStatus')}</th></tr></thead>
+    <tbody>${orders.slice(0, 5).map(o => `<tr>
+      <td><code style="font-family:'JetBrains Mono',monospace;font-size:11px">${o.id}</code></td>
+      <td>${o.client}</td><td style="font-size:12px;color:var(--muted)">${o.items}</td>
+      <td style="font-weight:700">${(o.total || 0).toLocaleString()} DA</td>
+      <td>${statusBadge(o.status)}</td>
+    </tr>`).join('')}</tbody>`;
+      const pr = reviews.filter(r => r.status === 'En attente');
+      document.getElementById('dashPendingReviews').innerHTML = pr.length ? pr.map((r, i) => {
+        const ri = reviews.indexOf(r);
+        return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div>${stars(r.rating)}</div>
+      <div style="flex:1"><strong>${r.client}</strong> — <span style="color:var(--muted)">${r.product}</span><div style="font-size:12.5px;color:var(--muted);margin-top:2px">${r.text}</div></div>
+      <div style="display:flex;gap:5px;flex-shrink:0">
+        <button class="btn btn-teal btn-sm" onclick="approveReview(${ri},true)">${t('approve')}</button>
+        <button class="btn btn-danger btn-sm" onclick="approveReview(${ri},false)">${t('reject')}</button>
+      </div>
+    </div>`;
+      }).join('') : `<div style="color:var(--muted);font-size:13px;padding:12px 0">${t('noReviewsPending')}</div>`;
+    }
+    function drawDonut() {
+      const canvas = document.getElementById('donutCanvas'); if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const cats = [...new Set(products.map(p => p.cat))];
+      const colors = ['#497b89', '#6b7280', '#9ca3af', '#e05a8a', '#3b82f6', '#8b5cf6'];
+      let start = -Math.PI / 2;
+      ctx.clearRect(0, 0, 90, 90);
+      cats.forEach((cat, i) => {
+        const count = products.filter(p => p.cat === cat).length;
+        const angle = (count / Math.max(products.length, 1)) * 2 * Math.PI;
+        ctx.beginPath(); ctx.moveTo(45, 45); ctx.arc(45, 45, 40, start, start + angle); ctx.closePath();
+        ctx.fillStyle = colors[i % colors.length]; ctx.fill(); start += angle;
+      });
+      ctx.beginPath(); ctx.arc(45, 45, 22, 0, 2 * Math.PI); ctx.fillStyle = isDark ? '#1a2535' : '#fff'; ctx.fill();
+      document.getElementById('donutLegend').innerHTML = cats.map((cat, i) => `
+    <div class="donut-legend-item"><div class="donut-dot" style="background:${colors[i % colors.length]}"></div><span>${cat} (${products.filter(p => p.cat === cat).length})</span></div>`).join('');
+    }
+
+    async function renderProducts() {
+      try {
+        const res = await fetch('/api/admin/products');
+        const data = await res.json();
+        if (data.success) products = data.products;
+      } catch (e) { console.warn('renderProducts fetch error:', e); }
+
+      document.getElementById('prodTable').innerHTML = `
+    <thead><tr>
+      <th>${t('thName')}</th><th>${t('thCategory')}</th>
+      <th>${t('thPrice')}</th><th>${t('thRating')}</th>
+      <th>Stock</th><th>Dispo</th><th>${t('thBadge')}</th>
+      <th>${t('thActions')}</th>
+    </tr></thead>
+    <tbody>${products.map((p, i) => `<tr style="${p.estDisponible === 0 ? 'opacity:.5' : ''}">
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:8px;background:var(--bg);border:1px solid var(--border);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px">
+          ${p.img ? `<img src="${p.img}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='📦'">` : `<span>📦</span>`}
+        </div>
+        <div><strong>${p.name}</strong>${p.marque ? `<div style="font-size:11px;color:var(--muted)">${p.marque}</div>` : ''}</div>
+      </div></td>
+      <td><span class="badge badge-teal">${p.cat}</span></td>
+      <td style="font-weight:700;font-family:'Syne',sans-serif">
+        ${(p.price || 0).toLocaleString()} DA
+        ${p.oldPrice ? `<div style="font-size:10px;color:var(--muted);text-decoration:line-through">${p.oldPrice.toLocaleString()} DA</div>` : ''}
+      </td>
+      <td>${stars(Math.round(p.rating || 0))} <span style="font-size:11px;color:var(--muted)">${p.rating || '—'}</span></td>
+      <td><span class="badge ${p.stock > 0 ? 'badge-teal' : 'badge-red'}">${p.stock > 0 ? p.stock + ' unités' : 'Rupture'}</span></td>
+      <td>
+        <label class="tog"><input type="checkbox" ${p.estDisponible !== 0 ? 'checked' : ''} onchange="toggleProdDisponible(${p.id},this)"><span class="tog-slider"></span></label>
+      </td>
+      <td>${p.badge ? `<span class="badge ${p.badge === 'new' ? 'badge-blue' : 'badge-red'}">${p.badge === 'new' ? 'NOUVEAU' : 'PROMO'}</span>` : '<span class="badge badge-gray">—</span>'}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-outline btn-sm" onclick="openEditProd(${i})"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="delProdAdmin(${p.id})"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('')}</tbody>`;
+    }
+
+
+
+
+
+
+    async function toggleProdDisponible(id, checkbox) {
+      try {
+        const res = await fetch(`/api/admin/products/${id}/toggle`, { method: 'PUT' });
+        const data = await res.json();
+        if (!data.success) { checkbox.checked = !checkbox.checked; toast('⚠️ Erreur toggle'); }
+        else { toast(checkbox.checked ? '✓ Produit visible' : '✓ Produit masqué'); renderProducts(); }
+      } catch (e) { checkbox.checked = !checkbox.checked; toast('⚠️ Erreur réseau'); }
+    }
+
+    async function delProdAdmin(id) {
+      if (!confirm(t('confirmDeleteProd'))) return;
+      try {
+        const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) { toast(t('deleted')); renderProducts(); updateBadges(); }
+        else toast('⚠️ ' + (data.message || 'Erreur'));
+      } catch (e) { toast('⚠️ Erreur réseau'); }
+    }
+
+
+
+
+
+    function openAddProd() {
+      document.getElementById('prodIdx').value = '-1';
+      document.getElementById('prodModalTitle').textContent = t('addProduct');
+      document.getElementById('pImg').value = ''; document.getElementById('pName').value = '';
+      document.getElementById('pCat').value = 'Écrans'; document.getElementById('pPrice').value = '';
+      document.getElementById('pOld').value = ''; document.getElementById('pRating').value = '4.5';
+      document.getElementById('pBadge').value = ''; document.getElementById('pSpecs').value = '';
+      document.getElementById('pStock').value = 10;
+      document.getElementById('pMarque').value = '';
+      openModal('prodModal');
+    }
+    function openEditProd(i) {
+      const p = products[i];
+      document.getElementById('prodIdx').value = i;
+      document.getElementById('prodModalTitle').textContent = t('thName');
+      document.getElementById('pImg').value = p.img || '';
+      document.getElementById('pName').value = p.name || '';
+      document.getElementById('pCat').value = p.cat || 'Écrans';
+      document.getElementById('pPrice').value = p.price || '';
+      document.getElementById('pOld').value = p.oldPrice || '';
+      document.getElementById('pRating').value = p.rating || 4.5;
+      document.getElementById('pBadge').value = p.badge || '';
+      document.getElementById('pSpecs').value = p.specs || '';
+      // ← AJOUTER CES DEUX LIGNES :
+      document.getElementById('pStock').value = p.stock || 0;
+      document.getElementById('pMarque').value = p.marque || '';
+      openModal('prodModal');
+    }
+
+    //function saveProd() {
+    //const idx=parseInt(document.getElementById('prodIdx').value);
+    //const item={
+    //id: idx>=0 ? products[idx].id : Date.now(),
+    //name: document.getElementById('pName').value||'Nouveau produit',
+    /*cat:  document.getElementById('pCat').value,
+    price: parseFloat(document.getElementById('pPrice').value)||0,
+    oldPrice: parseFloat(document.getElementById('pOld').value)||null,
+    rating: parseFloat(document.getElementById('pRating').value)||4.5,
+    ratingCount: idx>=0?(products[idx].ratingCount||0):0,
+    badge: document.getElementById('pBadge').value||null,
+    img:   document.getElementById('pImg').value||'',
+    specs: document.getElementById('pSpecs').value||'',
+    stock: true,
+    desc:  idx>=0?(products[idx].desc||''):'',
+    specItems: idx>=0?(products[idx].specItems||{}):{},
+    reviews: idx>=0?(products[idx].reviews||[]):[],
+    imgs: idx>=0?(products[idx].imgs||[]):[]
+  };
+  if(idx>=0) products[idx]=item; else products.push(item);
+  saveData('ds_products',products);
+  localStorage.setItem('articles',JSON.stringify(products));
+  closeModal('prodModal'); renderProducts(); updateBadges(); toast(t('saved'));
+}*/
+
+    /*function delProd(i) { if(!confirm(t('confirmDeleteProd'))) return; products.splice(i,1); saveData('ds_products',products); localStorage.setItem('articles',JSON.stringify(products)); renderProducts(); updateBadges(); toast(t('deleted')); }*/
+
+    function renderCategories() {
+      document.getElementById('catTable').innerHTML = `
+    <thead><tr><th>${t('thName')}</th><th>${t('thIcon')}</th><th>${t('thDescription')}</th><th>${t('thProducts')}</th><th>${t('thActions')}</th></tr></thead>
+    <tbody>${categories.map((c, i) => `<tr>
+      <td><strong>${c.name}</strong></td><td style="font-size:20px">${c.icon || '📦'}</td>
+      <td style="color:var(--muted);font-size:12.5px">${c.desc || '—'}</td>
+      <td><span class="badge badge-teal">${products.filter(p => p.cat === c.name).length}</span></td>
+      <td><div class="td-actions">
+        <button class="btn btn-outline btn-sm" onclick="openEditCat(${i})"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="delCat(${i})"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('')}</tbody>`;
+    }
+    function openAddCat() { document.getElementById('catIdx').value = '-1'; document.getElementById('catModalTitle').textContent = t('addCategory'); document.getElementById('catName').value = ''; document.getElementById('catIcon').value = ''; document.getElementById('catDesc').value = ''; openModal('catModal'); }
+    function openEditCat(i) { document.getElementById('catIdx').value = i; document.getElementById('catModalTitle').textContent = t('thName'); document.getElementById('catName').value = categories[i].name; document.getElementById('catIcon').value = categories[i].icon || ''; document.getElementById('catDesc').value = categories[i].desc || ''; openModal('catModal'); }
+    function saveCat() { const idx = parseInt(document.getElementById('catIdx').value); const item = { name: document.getElementById('catName').value, icon: document.getElementById('catIcon').value, desc: document.getElementById('catDesc').value }; if (isNaN(idx) || idx < 0) categories.push(item); else categories[idx] = item; saveData('ds_categories', categories); closeModal('catModal'); renderCategories(); toast(t('saved')); }
+    function delCat(i) { if (!confirm(t('confirmDelete'))) return; categories.splice(i, 1); saveData('ds_categories', categories); renderCategories(); toast(t('deleted')); }
+
+    function renderOrders() {
+      const filt = document.getElementById('orderFilter').value;
+      const list = filt ? orders.filter(o => o.status === filt) : orders;
+      document.getElementById('ordersTable').innerHTML = `
+    <thead><tr><th>${t('thID')}</th><th>${t('thClient')}</th><th>${t('thItems')}</th><th>${t('thTotal')}</th><th>${t('thDate')}</th><th>${t('thStatus')}</th><th>${t('thEdit')}</th></tr></thead>
+    <tbody>${list.map(o => {
+        const ri = orders.indexOf(o);
+        return `<tr>
+        <td><code style="font-family:'JetBrains Mono',monospace;font-size:11px">${o.id}</code></td>
+        <td>${o.client}</td><td style="font-size:12px;color:var(--muted)">${o.items}</td>
+        <td style="font-weight:700">${(o.total || 0).toLocaleString()} DA</td>
+        <td style="font-size:12px;color:var(--muted)">${o.date}</td>
+        <td>${statusBadge(o.status)}</td>
+        <td><select onchange="changeOrderStatus(${ri},this.value)" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg);color:var(--text)">
+          ${['Livré', 'En cours', 'Expédié', 'Annulé'].map(s => `<option${s === o.status ? ' selected' : ''}>${s}</option>`).join('')}
+        </select></td>
+      </tr>`;
+      }).join('')}</tbody>`;
+    }
+    function changeOrderStatus(i, val) { orders[i].status = val; saveData('ds_orders', orders); renderOrders(); toast(t('statusUpdated')); }
+
+    function renderDelivery() {
+      document.getElementById('deliveryList').innerHTML = deliveries.map((d, di) => `
+    <div style="border:1px solid var(--border);border-radius:var(--r);padding:17px;margin-bottom:13px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;flex-wrap:wrap;gap:8px">
+        <div>
+          <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">${d.id}</code>
+          <div style="font-weight:700;font-size:15px;margin-top:2px">${d.client}</div>
+          <div style="font-size:12px;color:var(--muted)">${d.addr}</div>
+        </div>
+        ${d.step < d.steps.length - 1 ? `<button class="btn btn-teal btn-sm" onclick="advanceDelivery(${di})"><i class="fas fa-arrow-right"></i> ${t('advanceStep')}</button>` : `<span class="badge badge-teal">${t('delivered')}</span>`}
+      </div>
+      <div class="track-steps">${d.steps.map((s, si) => {
+        const cls = si < d.step ? 'ts-done' : si === d.step ? 'ts-current' : '';
+        return `<div class="ts-step ${cls}"><div class="ts-dot">${si < d.step ? '✓' : si === d.step ? '▶' : si + 1}</div><div class="ts-lbl">${s}</div></div>`;
+      }).join('')}</div>
+      <div style="margin-top:10px">
+        <div class="progress"><div class="progress-fill" style="width:${Math.round((d.step / Math.max(d.steps.length - 1, 1)) * 100)}%"></div></div>
+        <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:4px">${Math.round((d.step / Math.max(d.steps.length - 1, 1)) * 100)}%</div>
+      </div>
+    </div>`).join('');
+    }
+    function advanceDelivery(i) { if (deliveries[i].step < deliveries[i].steps.length - 1) { deliveries[i].step++; saveData('ds_deliveries', deliveries); renderDelivery(); toast(t('stepAdvanced')); } }
+
+    function renderPoints() {
+      const lvls = { Bronze: 0, Argent: 0, Or: 0, Platine: 0 };
+      users.forEach(u => { lvls[levelOf(u.pts || 0)]++; });
+      document.getElementById('pointsLevelStats').innerHTML = Object.entries(lvls).map(([lv, cnt]) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span class="pts-level ${levelClass(lv)}">${lv}</span>
+      <div style="flex:1;margin:0 12px"><div class="progress"><div class="progress-fill" style="width:${Math.round((cnt / Math.max(users.length, 1)) * 100)}%"></div></div></div>
+      <span style="font-size:13px;font-weight:700;min-width:22px;text-align:right">${cnt}</span>
+    </div>`).join('');
+      document.getElementById('pointsRules').innerHTML = `<div style="font-size:12.5px;color:var(--muted);line-height:2.1">
+    <div>🛒 <strong>1 pt</strong> / 100 DA</div><div>⭐ <strong>50 pts</strong> avis publié</div>
+    <div>🎁 <strong>200 pts</strong> parrainage</div><div>📦 400 pts → Argent</div>
+    <div>🏅 1000 pts → Or</div><div>💎 2000 pts → Platine</div></div>`;
+      document.getElementById('pointsTable').innerHTML = `
+    <thead><tr><th>${t('thClient')}</th><th>${t('thPoints')}</th><th>${t('thLevel')}</th><th>${t('thRewards')}</th><th>${t('thActions')}</th></tr></thead>
+    <tbody>${users.map((u, i) => {
+        const lv = levelOf(u.pts || 0); const rew = Math.floor((u.pts || 0) / 500);
+        return `<tr>
+        <td><div style="display:flex;align-items:center;gap:9px"><div class="avatar" style="background:${avatarColor(u.first + u.last)}">${initials(u.first, u.last)}</div>${u.first} ${u.last}</div></td>
+        <td><span class="pts-badge"><i class="fas fa-star" style="font-size:10px"></i> ${(u.pts || 0).toLocaleString()}</span></td>
+        <td><span class="pts-level ${levelClass(lv)}">${lv}</span></td>
+        <td>${rew > 0 ? `<span class="badge badge-teal">${rew} récompense${rew > 1 ? 's' : ''}</span>` : `<span style="color:var(--muted);font-size:12px">—</span>`}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="openAddPts(${i})"><i class="fas fa-plus"></i></button></td>
+      </tr>`;
+      }).join('')}</tbody>`;
+    }
+    function openAddPts(presel = -1) {
+      const sel = document.getElementById('ptsUser');
+      sel.innerHTML = users.map((u, i) => `<option value="${i}" ${i === presel ? 'selected' : ''}>${u.first} ${u.last} (${u.pts || 0} pts)</option>`).join('');
+      document.getElementById('ptsAmt').value = '100'; document.getElementById('ptsMotive').value = '';
+      openModal('ptsModal');
+    }
+    function savePts() { const idx = parseInt(document.getElementById('ptsUser').value); const amt = parseInt(document.getElementById('ptsAmt').value) || 0; users[idx].pts = (users[idx].pts || 0) + amt; saveData('ds_users', users); closeModal('ptsModal'); renderPoints(); toast(`${amt} ${t('ptsAssigned')} ${users[idx].first}`); }
+
+    function renderUsers() {
+      document.getElementById('usersTable').innerHTML = `
+    <thead><tr><th>${t('thClient')}</th><th>${t('thEmail')}</th><th>${t('thPhone')}</th><th>${t('thRole')}</th><th>${t('thStatus')}</th><th>${t('thPoints')}</th><th>${t('thActions')}</th></tr></thead>
+    <tbody>${users.map((u, i) => {
+        const rc = { Client: 'badge-blue', Admin: 'badge-teal', Livreur: 'badge-orange' }[u.role] || 'badge-gray';
+        return `<tr>
+        <td><div style="display:flex;align-items:center;gap:9px"><div class="avatar" style="background:${avatarColor(u.first + u.last)}">${initials(u.first, u.last)}</div><div><div style="font-weight:600">${u.first} ${u.last}</div><div style="font-size:11px;color:var(--muted)">#${u.id || i + 1}</div></div></div></td>
+        <td style="font-size:12.5px">${u.email}</td>
+        <td style="font-size:12.5px;color:var(--muted)">${u.phone || '—'}</td>
+        <td><span class="badge ${rc}">${u.role}</span></td>
+        <td>${statusBadge(u.active ? 'Actif' : 'Inactif')}</td>
+        <td><span class="pts-badge" style="font-size:11px"><i class="fas fa-star" style="font-size:9px"></i> ${(u.pts || 0).toLocaleString()}</span></td>
+        <td><div class="td-actions">
+          <button class="btn btn-outline btn-sm" onclick="openEditUser(${i})"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-sm ${u.active ? 'btn-danger' : 'btn-outline'}" onclick="toggleUser(${i})">${u.active ? '<i class="fas fa-ban"></i>' : '<i class="fas fa-check"></i>'}</button>
+          <button class="btn btn-danger btn-sm" onclick="delUser(${i})"><i class="fas fa-trash"></i></button>
+        </div></td>
+      </tr>`;
+      }).join('')}</tbody>`;
+      document.getElementById('userHistory').innerHTML = users.filter(u => u.orders && u.orders.length).map(u => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div class="avatar" style="background:${avatarColor(u.first + u.last)}">${initials(u.first, u.last)}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13.5px">${u.first} ${u.last}</div><div style="font-size:12px;color:var(--muted)">${u.orders.join(' · ')}</div></div>
+      <span class="badge badge-teal">${u.orders.length} ${t('ordersCount')}</span>
+    </div>`).join('') || `<div style="color:var(--muted);font-size:13px;padding:12px 0">${t('noHistory')}</div>`;
+    }
+    function openAddUser() { document.getElementById('userIdx').value = '-1'; document.getElementById('userModalTitle').textContent = t('addUser');['uFirst', 'uLast', 'uEmail', 'uPhone'].forEach(f => document.getElementById(f).value = ''); document.getElementById('uRole').value = 'Client'; document.getElementById('uStatus').value = '1'; openModal('userModal'); }
+    function openEditUser(i) { const u = users[i]; document.getElementById('userIdx').value = i; document.getElementById('userModalTitle').textContent = t('thName'); document.getElementById('uFirst').value = u.first; document.getElementById('uLast').value = u.last; document.getElementById('uEmail').value = u.email; document.getElementById('uPhone').value = u.phone || ''; document.getElementById('uRole').value = u.role; document.getElementById('uStatus').value = u.active ? '1' : '0'; openModal('userModal'); }
+    function saveUser() { const idx = parseInt(document.getElementById('userIdx').value); const item = { id: idx >= 0 ? (users[idx].id || idx + 1) : Date.now(), first: document.getElementById('uFirst').value, last: document.getElementById('uLast').value, email: document.getElementById('uEmail').value, phone: document.getElementById('uPhone').value, role: document.getElementById('uRole').value, active: document.getElementById('uStatus').value === '1', pts: idx >= 0 ? (users[idx].pts || 0) : 0, orders: idx >= 0 ? (users[idx].orders || []) : [] }; if (isNaN(idx) || idx < 0) users.push(item); else users[idx] = item; saveData('ds_users', users); closeModal('userModal'); renderUsers(); updateBadges(); toast(t('saved')); }
+    function toggleUser(i) { users[i].active = !users[i].active; saveData('ds_users', users); renderUsers(); toast(users[i].active ? t('userActivated') : t('userDeactivated')); }
+    function delUser(i) { if (!confirm(t('confirmDeleteUser'))) return; users.splice(i, 1); saveData('ds_users', users); renderUsers(); updateBadges(); toast(t('deleted')); }
+
+    function renderReviews() {
+      const filt = document.getElementById('reviewFilter').value;
+      const list = filt ? reviews.filter(r => r.status === filt) : reviews;
+      const app = reviews.filter(r => r.status === 'Approuvé').length;
+      const pend = reviews.filter(r => r.status === 'En attente').length;
+      const rej = reviews.filter(r => r.status === 'Rejeté').length;
+      const avg = (reviews.reduce((s, r) => s + (r.rating || 0), 0) / Math.max(reviews.length, 1)).toFixed(1);
+      document.getElementById('reviewStats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon si-teal"><i class="fas fa-check-circle"></i></div><div class="stat-val">${app}</div><div class="stat-lbl">${t('approved')}</div></div>
+    <div class="stat-card"><div class="stat-icon si-yellow"><i class="fas fa-clock"></i></div><div class="stat-val">${pend}</div><div class="stat-lbl">${t('pending')}</div></div>
+    <div class="stat-card"><div class="stat-icon si-red"><i class="fas fa-times-circle"></i></div><div class="stat-val">${rej}</div><div class="stat-lbl">${t('rejected')}</div></div>
+    <div class="stat-card"><div class="stat-icon si-teal"><i class="fas fa-star"></i></div><div class="stat-val">${avg}</div><div class="stat-lbl">${t('rating')}</div></div>`;
+      document.getElementById('reviewsTable').innerHTML = `
+    <thead><tr><th>${t('thClient')}</th><th>${t('thProduct')}</th><th>${t('thRating')}</th><th>${t('thComment')}</th><th>${t('thDate')}</th><th>${t('thStatus')}</th><th>${t('thActions')}</th></tr></thead>
+    <tbody>${list.map(r => {
+        const ri = reviews.indexOf(r);
+        return `<tr>
+        <td><strong>${r.client}</strong></td><td style="font-size:12.5px;color:var(--muted)">${r.product}</td>
+        <td>${stars(r.rating)}</td>
+        <td style="font-size:12.5px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.text}">${r.text}</td>
+        <td style="font-size:11.5px;color:var(--muted)">${r.date}</td>
+        <td>${statusBadge(r.status)}</td>
+        <td><div class="td-actions">
+          ${r.status === 'En attente' ? `<button class="btn btn-teal btn-sm" onclick="approveReview(${ri},true)">${t('approve')}</button><button class="btn btn-danger btn-sm" onclick="approveReview(${ri},false)">${t('reject')}</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="delReview(${ri})"><i class="fas fa-trash"></i></button>
+        </div></td>
+      </tr>`;
+      }).join('')}</tbody>`;
+    }
+    function approveReview(i, ok) { reviews[i].status = ok ? 'Approuvé' : 'Rejeté'; saveData('ds_reviews', reviews); if (currentSection === 'reviews') renderReviews(); renderDashboard(); updateBadges(); toast(ok ? t('reviewApproved') : t('reviewRejected')); }
+    function delReview(i) { if (!confirm(t('confirmDeleteReview'))) return; reviews.splice(i, 1); saveData('ds_reviews', reviews); renderReviews(); updateBadges(); toast(t('deleted')); }
+
+    function renderComparator() {
+      const tc = { Numérique: 'badge-blue', Texte: 'badge-teal', Booléen: 'badge-teal', Liste: 'badge-orange' };
+      document.getElementById('critTable').innerHTML = `
+    <thead><tr><th>${t('thCriteria')}</th><th>${t('thType')}</th><th>${t('thPriority')}</th><th>${t('thActive')}</th><th>${t('thActions')}</th></tr></thead>
+    <tbody>${criteria.map((c, i) => `<tr>
+      <td><strong>${c.name}</strong></td>
+      <td><span class="badge ${tc[c.type] || 'badge-gray'}">${c.type}</span></td>
+      <td><span style="color:#f59e0b">${'★'.repeat(c.priority)}${'☆'.repeat(5 - c.priority)}</span></td>
+      <td><label class="tog"><input type="checkbox" ${c.active ? 'checked' : ''} onchange="toggleCrit(${i})"><span class="tog-slider"></span></label></td>
+      <td><div class="td-actions">
+        <button class="btn btn-outline btn-sm" onclick="openEditCrit(${i})"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="delCrit(${i})"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('')}</tbody>`;
+      const top = [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 3);
+      document.getElementById('comparePreview').innerHTML = top.length ? `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+    <thead><tr><th style="text-align:left;padding:9px 12px;border-bottom:2px solid var(--border);font-size:11px;color:var(--muted);text-transform:uppercase">${t('thCriteria')}</th>${top.map(p => `<th style="padding:9px 12px;border-bottom:2px solid var(--border);text-align:center;font-size:13px">${p.name}<br><span style="color:var(--teal);font-family:'Syne',sans-serif;font-weight:800">${(p.price || 0).toLocaleString()} DA</span></th>`).join('')}</tr></thead>
+    <tbody>
+      <tr><td style="padding:10px 12px;background:var(--bg);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase">${t('thRating')}</td>${top.map(p => `<td style="text-align:center;padding:10px 12px">${stars(Math.round(p.rating || 0))} ${p.rating}</td>`).join('')}</tr>
+      <tr><td style="padding:10px 12px;background:var(--bg);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase">${t('thCategory')}</td>${top.map(p => `<td style="text-align:center;padding:10px 12px"><span class="badge badge-teal">${p.cat}</span></td>`).join('')}</tr>
+      <tr><td style="padding:10px 12px;background:var(--bg);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase">${t('thBadge')}</td>${top.map(p => `<td style="text-align:center;padding:10px 12px">${p.badge ? `<span class="badge ${p.badge === 'new' ? 'badge-blue' : 'badge-red'}">${p.badge === 'new' ? 'NOUVEAU' : 'PROMO'}</span>` : '—'}</td>`).join('')}</tr>
+    </tbody></table></div>`: t('noHistory');
+    }
+    function openAddCrit() { document.getElementById('critIdx').value = '-1'; document.getElementById('critModalTitle').textContent = t('addCriteria'); document.getElementById('critName').value = ''; document.getElementById('critPrio').value = 3; openModal('critModal'); }
+    function openEditCrit(i) { document.getElementById('critIdx').value = i; document.getElementById('critModalTitle').textContent = t('thCriteria'); document.getElementById('critName').value = criteria[i].name; document.getElementById('critType').value = criteria[i].type; document.getElementById('critPrio').value = criteria[i].priority; openModal('critModal'); }
+    function saveCrit() { const idx = parseInt(document.getElementById('critIdx').value); const item = { name: document.getElementById('critName').value, type: document.getElementById('critType').value, priority: parseInt(document.getElementById('critPrio').value) || 3, active: idx >= 0 ? criteria[idx].active : true }; if (isNaN(idx) || idx < 0) criteria.push(item); else criteria[idx] = item; saveData('ds_criteria', criteria); closeModal('critModal'); renderComparator(); toast(t('saved')); }
+    function toggleCrit(i) { criteria[i].active = !criteria[i].active; saveData('ds_criteria', criteria); toast(criteria[i].active ? t('critEnabled') : t('critDisabled')); }
+    function delCrit(i) { if (!confirm(t('confirmDelete'))) return; criteria.splice(i, 1); saveData('ds_criteria', criteria); renderComparator(); toast(t('deleted')); }
+
+    function openAddReco() {
+      const name = prompt('Nom du module de recommandation :');
+      if (!name || !name.trim()) return;
+      const desc = prompt('Description du module :') || '';
+      recoModules.push({ name: name.trim(), desc: desc.trim(), active: true });
+      saveData('ds_reco', recoModules);
+      renderRecommendations();
+      toast(t('saved'));
+    }
+
+    function openEditReco(i) {
+      const current = recoModules[i];
+      if (!current) return;
+      const name = prompt('Nom du module :', current.name || '');
+      if (!name || !name.trim()) return;
+      const desc = prompt('Description du module :', current.desc || '');
+      recoModules[i] = {
+        ...current,
+        name: name.trim(),
+        desc: (desc || '').trim()
+      };
+      saveData('ds_reco', recoModules);
+      renderRecommendations();
+      toast(t('saved'));
+    }
+
+    function delReco(i) {
+      if (!confirm(t('confirmDelete'))) return;
+      recoModules.splice(i, 1);
+      saveData('ds_reco', recoModules);
+      renderRecommendations();
+      toast(t('deleted'));
+    }
+
+    function renderRecommendations() {
+      document.getElementById('recoModules').innerHTML = `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+      <button class="btn btn-teal" onclick="openAddReco()">+ Ajouter module</button>
+    </div>
+    ${recoModules.map((m, i) => `
+    <div class="reco-module">
+      <div>
+        <div class="reco-module-title">${m.name}</div>
+        <div class="reco-module-desc">${m.desc}</div>
+      </div>
+      <div class="tog-wrap">
+        <button class="btn-icon" title="Modifier" onclick="openEditReco(${i})"><i class="fas fa-pen"></i></button>
+        <button class="btn-icon danger" title="Supprimer" onclick="delReco(${i})"><i class="fas fa-trash"></i></button>
+        <label class="tog"><input type="checkbox" ${m.active ? 'checked' : ''} onchange="toggleReco(${i})"><span class="tog-slider"></span></label>
+        <span style="font-size:12px;color:${m.active ? 'var(--teal)' : 'var(--muted)'};font-weight:600;min-width:44px">${m.active ? t('active') : t('inactive')}</span>
+      </div>
+    </div>`).join('')}
+  `;
+      const clients = users.filter(u => u.role === 'Client');
+      document.getElementById('recoUserTable').innerHTML = `
+    <thead><tr><th>${t('thClient')}</th><th>${t('thHistory')}</th><th>${t('thTrending')}</th><th>${t('thPromoAlerts')}</th><th>${t('thActiveSugg')}</th></tr></thead>
+    <tbody>${clients.map((u, i) => {
+        const h = !!(i % 2), pop = true, promo = !!(i % 3 === 0); const active = [h ? t('thHistory') : null, pop ? t('thTrending') : null, promo ? t('thPromoAlerts') : null].filter(Boolean);
+        return `<tr>
+        <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="background:${avatarColor(u.first + u.last)}">${initials(u.first, u.last)}</div>${u.first} ${u.last}</div></td>
+        <td><label class="tog"><input type="checkbox" ${h ? 'checked' : ''}><span class="tog-slider"></span></label></td>
+        <td><label class="tog"><input type="checkbox" ${pop ? 'checked' : ''}><span class="tog-slider"></span></label></td>
+        <td><label class="tog"><input type="checkbox" ${promo ? 'checked' : ''}><span class="tog-slider"></span></label></td>
+        <td>${active.map(a => `<span class="badge badge-teal" style="margin:2px">${a}</span>`).join('') || `<span style="color:var(--muted);font-size:12px">${t('noReco')}</span>`}</td>
+      </tr>`;
+      }).join('')}</tbody>`;
+      const reco = [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 4);
+      document.getElementById('recoProducts').innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px">${reco.map(p => `
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:13px">
+      <div style="width:100%;height:80px;border-radius:8px;overflow:hidden;margin-bottom:10px;background:var(--surface2)">
+        <img src="${p.img || 'https://source.unsplash.com/170x80/?' + encodeURIComponent(buildImageKeywords(p))}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'" loading="lazy">
+      </div>
+      <div style="font-weight:600;font-size:13px;margin-bottom:4px">${p.name}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">${p.cat}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>${stars(Math.round(p.rating || 0))}</div>
+        <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--teal)">${(p.price || 0).toLocaleString()} DA</span>
+      </div>
+      ${p.badge === 'promo' ? `<div style="margin-top:7px"><span class="badge badge-red">PROMO</span></div>` : ''}
+    </div>`).join('')}</div>`;
+    }
+    function toggleReco(i) { recoModules[i].active = !recoModules[i].active; saveData('ds_reco', recoModules); renderRecommendations(); toast(recoModules[i].active ? t('moduleEnabled') : t('moduleDisabled')); }
+
+    function fetchProductImage(product, idx) {
+      const keywords = buildImageKeywords(product);
+      const url = `https://source.unsplash.com/120x120/?${keywords}`;
+      products[idx].img = url;
+    }
+
+    function buildImageKeywords(p) {
+      const name = p.name.toLowerCase();
+      const cat = (p.cat || '').toLowerCase();
+      const map = [
+        [/écran|monitor|display|odyssey|proart/i, 'computer+monitor+screen'],
+        [/clavier|keyboard|keychron/i, 'mechanical+keyboard'],
+        [/souris|mouse|logitech|mx master/i, 'computer+mouse'],
+        [/gpu|rtx|geforce|radeon/i, 'graphics+card+gpu'],
+        [/cpu|ryzen|intel|processeur/i, 'cpu+processor+chip'],
+        [/ssd|nvme|samsung 990|stockage/i, 'ssd+storage+drive'],
+        [/ram|ddr|g.skill|corsair/i, 'ram+memory+module'],
+        [/laptop|portable/i, 'laptop+computer'],
+        [/casque|headset/i, 'headset+gaming'],
+        [/webcam/i, 'webcam'],
+        [/imprimante/i, 'printer'],
+        [/enceinte|speaker/i, 'speaker+audio'],
+      ];
+      for (const [re, kw] of map) {
+        if (re.test(name) || re.test(cat)) return kw;
+      }
+      return 'computer+tech+product';
+    }
+
+    /* ═══════════════════════════════════════
+       INTERACTIVE TOUR
+    ═══════════════════════════════════════ */
+    const TOUR_I18N = {
+      fr: { stepOf: (i, n) => `Étape ${i} / ${n}`, prev: 'Précédent', next: 'Suivant', finish: '✓ Terminer', quit: 'Quitter', btnLabel: 'Guide', hint: '💡 Cliquez sur « Guide » pour une visite guidée !' },
+      en: { stepOf: (i, n) => `Step ${i} / ${n}`, prev: 'Previous', next: 'Next', finish: '✓ Finish', quit: 'Exit', btnLabel: 'Tutorial', hint: '💡 Click "Tutorial" for an interactive tour!' },
+      ar: { stepOf: (i, n) => `الخطوة ${i} من ${n}`, prev: 'السابق', next: 'التالي', finish: '✓ إنهاء', quit: 'خروج', btnLabel: 'دليل', hint: '💡 انقر على "دليل" للجولة التفاعلية!' },
+    };
+
+    const TOUR_STEPS_DATA = [
+      { target: '#guideTourBtn', arrow: 'top', section: null, fr: { title: '👋 Bienvenue dans le Guide !', desc: 'Ce tutoriel interactif va vous guider à travers toutes les fonctionnalités du panneau d\'administration DigitalStore.' }, en: { title: '👋 Welcome to the Tutorial!', desc: 'This interactive tutorial will walk you through all features of the DigitalStore admin panel.' }, ar: { title: '👋 مرحباً بك في الدليل!', desc: 'سيرشدك هذا البرنامج التعليمي التفاعلي عبر جميع ميزات لوحة تحكم DigitalStore.' } },
+      { target: '.sb-item[onclick*="dashboard"]', arrow: 'right', section: 'dashboard', sidebarEl: '.sb-item[onclick*="dashboard"]', fr: { title: '📊 Tableau de bord', desc: 'Résumé en temps réel : produits, commandes, utilisateurs, avis et graphiques de ventes.' }, en: { title: '📊 Dashboard', desc: 'Real-time summary: products, orders, users, reviews and sales charts.' }, ar: { title: '📊 لوحة التحكم', desc: 'ملخص فوري: المنتجات والطلبات والمستخدمين والتقييمات ومخططات المبيعات.' } },
+      { target: '.sb-item[onclick*="products"]', arrow: 'right', section: 'products', sidebarEl: '.sb-item[onclick*="products"]', targetOverride: '.sb-item[onclick*="products"]', fr: { title: '📦 Catalogue Produits', desc: 'Ajoutez, modifiez ou supprimez des produits avec image, catégorie, prix et specs.' }, en: { title: '📦 Product Catalog', desc: 'Add, edit or delete products with image, category, price and specs.' }, ar: { title: '📦 كتالوج المنتجات', desc: 'أضف المنتجات أو عدّلها أو احذفها مع الصورة والفئة والسعر والمواصفات.' } },
+      { target: '.sb-item[onclick*="categories"]', arrow: 'right', section: 'categories', sidebarEl: '.sb-item[onclick*="categories"]', targetOverride: '.sb-item[onclick*="categories"]', fr: { title: '🏷️ Catégories', desc: 'Gérez vos catégories avec nom, icône et description.' }, en: { title: '🏷️ Categories', desc: 'Manage your categories with name, icon and description.' }, ar: { title: '🏷️ الفئات', desc: 'أدر فئاتك بالاسم والأيقونة والوصف.' } },
+      { target: '.sb-item[onclick*="orders"]', arrow: 'right', section: 'orders', sidebarEl: '.sb-item[onclick*="orders"]', targetOverride: '.sb-item[onclick*="orders"]', fr: { title: '🛒 Commandes', desc: 'Visualisez et filtrez toutes les commandes par statut.' }, en: { title: '🛒 Orders', desc: 'View and filter all orders by status.' }, ar: { title: '🛒 الطلبات', desc: 'اعرض وصفّ جميع الطلبات حسب الحالة.' } },
+      { target: '.sb-item[onclick*="delivery"]', arrow: 'right', section: 'delivery', sidebarEl: '.sb-item[onclick*="delivery"]', targetOverride: '.sb-item[onclick*="delivery"]', fr: { title: '🚚 Livraisons', desc: 'Suivez en temps réel l\'avancement de chaque livraison étape par étape.' }, en: { title: '🚚 Deliveries', desc: 'Track each delivery in real time step by step.' }, ar: { title: '🚚 التوصيل', desc: 'تابع تقدم كل عملية توصيل في الوقت الفعلي خطوة بخطوة.' } },
+      { target: '.sb-item[onclick*="points"]', arrow: 'right', section: 'points', sidebarEl: '.sb-item[onclick*="points"]', targetOverride: '.sb-item[onclick*="points"]', fr: { title: '⭐ Points Fidélité', desc: 'Gérez le programme de fidélité. Niveaux : Bronze, Argent, Or, Platine.' }, en: { title: '⭐ Loyalty Points', desc: 'Manage the loyalty program. Levels: Bronze, Silver, Gold, Platinum.' }, ar: { title: '⭐ نقاط الولاء', desc: 'أدر برنامج الولاء. المستويات: برونزي، فضي، ذهبي، بلاتيني.' } },
+      { target: '.sb-item[onclick*="users"]', arrow: 'right', section: 'users', sidebarEl: '.sb-item[onclick*="users"]', targetOverride: '.sb-item[onclick*="users"]', fr: { title: '👥 Utilisateurs', desc: 'Gérez les comptes Clients, Admins et Livreurs.' }, en: { title: '👥 Users', desc: 'Manage Client, Admin and Delivery accounts.' }, ar: { title: '👥 المستخدمون', desc: 'أدر حسابات العملاء والمشرفين والموصّلين.' } },
+      { target: '.sb-item[onclick*="reviews"]', arrow: 'right', section: 'reviews', sidebarEl: '.sb-item[onclick*="reviews"]', targetOverride: '.sb-item[onclick*="reviews"]', fr: { title: '💬 Avis Clients', desc: 'Modérez les avis avant publication. Approuvez ou rejetez.' }, en: { title: '💬 Reviews', desc: 'Moderate reviews before publishing. Approve or reject.' }, ar: { title: '💬 التقييمات', desc: 'راجع التقييمات قبل نشرها. وافق أو ارفض.' } },
+      { target: '.sb-item[onclick*="comparator"]', arrow: 'right', section: 'comparator', sidebarEl: '.sb-item[onclick*="comparator"]', targetOverride: '.sb-item[onclick*="comparator"]', fr: { title: '⚖️ Comparateur', desc: 'Définissez les critères de comparaison produits (type, priorité).' }, en: { title: '⚖️ Comparator', desc: 'Define product comparison criteria (type, priority).' }, ar: { title: '⚖️ المقارنة', desc: 'حدد معايير مقارنة المنتجات (النوع، الأولوية).' } },
+      { target: '.sb-item[onclick*="recommendations"]', arrow: 'right', section: 'recommendations', sidebarEl: '.sb-item[onclick*="recommendations"]', targetOverride: '.sb-item[onclick*="recommendations"]', fr: { title: '🤖 Recommandations', desc: 'Activez des modules intelligents de suggestions personnalisées.' }, en: { title: '🤖 Recommendations', desc: 'Enable smart personalized suggestion modules.' }, ar: { title: '🤖 التوصيات', desc: 'فعّل وحدات الاقتراحات الذكية المخصصة.' } },
+      { target: '#guideTourBtn', arrow: 'top', section: null, isLast: true, fr: { title: '🎉 Vous maîtrisez le panneau Admin !', desc: 'Vous connaissez toutes les fonctionnalités. Relancez ce guide à tout moment.' }, en: { title: '🎉 You mastered the Admin Panel!', desc: 'You now know all the features. Restart this tutorial anytime.' }, ar: { title: '🎉 أتقنت لوحة الإدارة!', desc: 'أنت تعرف الآن جميع الميزات. يمكنك إعادة تشغيل الدليل في أي وقت.' } },
+    ];
+
+    function getTourSteps() {
+      const lang = currentLang || 'fr';
+      return TOUR_STEPS_DATA.map(s => ({ ...s, title: (s[lang] || s.fr).title, desc: (s[lang] || s.fr).desc }));
+    }
+
+    let tourStep = 0, tourActive = false, prevHighlighted = null;
+
+    function startTour() {
+      tourStep = 0; tourActive = true;
+      document.getElementById('tourBackdrop').style.display = 'block';
+      document.getElementById('tourBox').style.display = 'block';
+      const box = document.getElementById('tourBox');
+      box.dir = (currentLang === 'ar') ? 'rtl' : 'ltr';
+      buildTourDots(); updateTourLabels(); showTourStep(tourStep);
+    }
+    function updateTourLabels() {
+      const i18n = TOUR_I18N[currentLang] || TOUR_I18N.fr;
+      document.getElementById('tourSkipLabel').textContent = i18n.quit;
+      document.getElementById('tourPrevLabel').textContent = i18n.prev;
+      const gs = document.querySelector('#guideTourBtn span');
+      if (gs) gs.textContent = i18n.btnLabel;
+    }
+    const _origSetLang = window.setLang;
+    window.setLang = function (lang) { _origSetLang && _origSetLang(lang); updateTourLabels(); if (tourActive) showTourStep(tourStep); };
+    function skipTour() { tourActive = false; document.getElementById('tourBackdrop').style.display = 'none'; document.getElementById('tourBox').style.display = 'none'; clearHighlight(); localStorage.setItem('ds_tour_done', '1'); }
+    function buildTourDots() { document.getElementById('tourDots').innerHTML = TOUR_STEPS_DATA.map((_, i) => `<div class="tour-dot" id="tdot${i}"></div>`).join(''); }
+    function showTourStep(idx) {
+      const steps = getTourSteps(); const step = steps[idx]; if (!step) { skipTour(); return; }
+      const i18n = TOUR_I18N[currentLang] || TOUR_I18N.fr;
+      if (step.section) { const el = document.querySelector(step.sidebarEl); if (el) el.click(); }
+      document.getElementById('tourStepLabel').textContent = i18n.stepOf(idx + 1, steps.length);
+      document.getElementById('tourTitle').textContent = step.title;
+      document.getElementById('tourDesc').textContent = step.desc;
+      document.getElementById('tourSkipLabel').textContent = i18n.quit;
+      document.querySelectorAll('.tour-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+      const prevBtn = document.getElementById('tourPrev'); prevBtn.style.opacity = idx === 0 ? '0.3' : '1'; prevBtn.disabled = idx === 0;
+      document.getElementById('tourPrevLabel').textContent = i18n.prev;
+      const nextBtn = document.getElementById('tourNext'); const nextLabel = document.getElementById('tourNextLabel');
+      if (step.isLast) { nextLabel.textContent = i18n.finish; nextBtn.querySelector('i').style.display = 'none'; nextBtn.onclick = skipTour; }
+      else { nextLabel.textContent = i18n.next; nextBtn.querySelector('i').style.display = ''; nextBtn.onclick = tourNext; }
+      clearHighlight();
+      const targetSel = step.targetOverride || step.target;
+      setTimeout(() => { const el = document.querySelector(targetSel); if (el) { prevHighlighted = el; el.classList.add('tour-highlight'); positionTourBox(el, step.arrow); } else positionCenter(); }, step.section ? 350 : 50);
+    }
+    function positionTourBox(target, arrowDir) {
+      const box = document.getElementById('tourBox'); const r = target.getBoundingClientRect();
+      const bw = 320, bh = box.offsetHeight || 230; let top, left; const pad = 18;
+      box.className = box.className.replace(/arrow-\w+/g, '').trim();
+      if (arrowDir === 'right' || (r.left > bw + pad && arrowDir !== 'top')) { left = r.right + pad; top = r.top + r.height / 2 - bh / 2; box.classList.add('arrow-left'); }
+      else if (arrowDir === 'left') { left = r.left - bw - pad; top = r.top + r.height / 2 - bh / 2; box.classList.add('arrow-right'); }
+      else if (arrowDir === 'bottom' || r.top > bh + pad) { left = r.left + r.width / 2 - bw / 2; top = r.top - bh - pad; box.classList.add('arrow-bottom'); }
+      else { left = r.left + r.width / 2 - bw / 2; top = r.bottom + pad; box.classList.add('arrow-top'); }
+      left = Math.max(12, Math.min(left, window.innerWidth - bw - 12));
+      top = Math.max(12, Math.min(top, window.innerHeight - bh - 12));
+      box.style.left = left + 'px'; box.style.top = top + 'px';
+    }
+    function positionCenter() { const box = document.getElementById('tourBox'); box.className = box.className.replace(/arrow-\w+/g, '').trim(); box.style.left = (window.innerWidth / 2 - 160) + 'px'; box.style.top = (window.innerHeight / 2 - 115) + 'px'; }
+    function clearHighlight() { document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight')); prevHighlighted = null; }
+    function tourNext() { if (tourStep < TOUR_STEPS_DATA.length - 1) { tourStep++; showTourStep(tourStep); } }
+    function tourPrev() { if (tourStep > 0) { tourStep--; showTourStep(tourStep); } }
+
+    function applyLang(lang) { setLang(lang); }
+
+    async function initApp() {
+      await loadData();
+      renderSection();
+      applyLang(currentLang);
+      products.forEach((p, i) => { if (!p.img) fetchProductImage(p, i); });
+      if (!localStorage.getItem('ds_tour_done')) {
+        const i18n = TOUR_I18N[currentLang] || TOUR_I18N.fr;
+        setTimeout(() => toast(i18n.hint), 1800);
+      }
+      updateTourLabels();
+    }
+    document.getElementById('appShell').style.display = 'none';
+    initTheme();
+  </script>
+  <script src="/api.js"></script>
+</body>
+
+</html>
