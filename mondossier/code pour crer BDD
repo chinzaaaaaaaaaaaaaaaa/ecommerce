@@ -1,0 +1,174 @@
+
+-- ============================================================
+-- crer dossier de BDD
+-- ============================================================
+CREATE DATABASE digital_store_db;
+
+
+
+
+
+-- ============================================================
+-- VERSION MYSQL : DIGITAL STORE (24 TABLES)
+-- ============================================================
+
+-- [1] TABLES INDÉPENDANTES
+CREATE TABLE Utilisateur (
+    idUtilisateur INT PRIMARY KEY AUTO_INCREMENT,
+    nom VARCHAR(100), prenom VARCHAR(100), email VARCHAR(150) UNIQUE NOT NULL,
+    motDePasse VARCHAR(255) NOT NULL, telephone VARCHAR(20), typeUtilisateur VARCHAR(50),
+    dateInscription DATE, estActif BOOLEAN DEFAULT TRUE
+) ENGINE=InnoDB;
+
+CREATE TABLE Categorie (
+    idCategorie INT PRIMARY KEY AUTO_INCREMENT, nom VARCHAR(100), description TEXT, icone VARCHAR(255)
+) ENGINE=InnoDB;
+
+CREATE TABLE Promotion (
+    idPromotion INT PRIMARY KEY AUTO_INCREMENT, titre VARCHAR(100), tauxReduction FLOAT,
+    dateDebut DATE, dateFin DATE, estActive BOOLEAN DEFAULT TRUE
+) ENGINE=InnoDB;
+
+CREATE TABLE NiveauFidelite (
+    idNiveau INT PRIMARY KEY AUTO_INCREMENT, libelle VARCHAR(50), pointsMin INT, pointsMax INT
+) ENGINE=InnoDB;
+
+-- [2] TABLES DÉPENDANTES
+CREATE TABLE Client (
+    idUtilisateur INT PRIMARY KEY,
+    adresseLivraison TEXT, wilaya VARCHAR(50),
+    FOREIGN KEY (idUtilisateur) REFERENCES Utilisateur(idUtilisateur) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE Administrateur (
+    idUtilisateur INT PRIMARY KEY,
+    niveauAcces INT,
+    FOREIGN KEY (idUtilisateur) REFERENCES Utilisateur(idUtilisateur) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE Produit (
+    idProduit INT PRIMARY KEY AUTO_INCREMENT, nom VARCHAR(200), description TEXT, prix FLOAT NOT NULL,
+    stock INT DEFAULT 0, image VARCHAR(255), marque VARCHAR(100), noteMoyenne FLOAT DEFAULT 0,
+    dateAjout DATE, estDisponible BOOLEAN DEFAULT TRUE, 
+    idCategorie INT,
+    FOREIGN KEY (idCategorie) REFERENCES Categorie(idCategorie) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- [3] PROCESSUS ET INTERACTIONS
+CREATE TABLE Panier (
+    idPanier INT PRIMARY KEY AUTO_INCREMENT, dateCreation DATE, 
+    idClient INT UNIQUE,
+    FOREIGN KEY (idClient) REFERENCES Client(idUtilisateur) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE CompteFidelite (
+    idFidelite INT PRIMARY KEY AUTO_INCREMENT, pointsTotal INT DEFAULT 0, dateMAJ DATE,
+    idClient INT UNIQUE, idNiveau INT,
+    FOREIGN KEY (idClient) REFERENCES Client(idUtilisateur) ON DELETE CASCADE,
+    FOREIGN KEY (idNiveau) REFERENCES NiveauFidelite(idNiveau)
+) ENGINE=InnoDB;
+
+CREATE TABLE AlertePrix (
+    idAlerte INT PRIMARY KEY AUTO_INCREMENT, prixAuMomentAbonnement FLOAT, dateActivation DATE,
+    estActive BOOLEAN DEFAULT TRUE, idClient INT, idProduit INT,
+    FOREIGN KEY (idClient) REFERENCES Client(idUtilisateur),
+    FOREIGN KEY (idProduit) REFERENCES Produit(idProduit)
+) ENGINE=InnoDB;
+
+CREATE TABLE Favoris (
+    idClient INT, idProduit INT, dateAjout DATE, 
+    PRIMARY KEY (idClient, idProduit),
+    FOREIGN KEY (idClient) REFERENCES Client(idUtilisateur) ON DELETE CASCADE,
+    FOREIGN KEY (idProduit) REFERENCES Produit(idProduit) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- [4] VENTES ET COMMANDES
+CREATE TABLE Commande (
+    idCommande INT PRIMARY KEY AUTO_INCREMENT, statut VARCHAR(50), dateCommande DATETIME DEFAULT CURRENT_TIMESTAMP,
+    adresseLivraison TEXT, wilaya VARCHAR(50), montantTotal FLOAT DEFAULT 0, 
+    idClient INT,
+    FOREIGN KEY (idClient) REFERENCES Client(idUtilisateur)
+) ENGINE=InnoDB;
+
+CREATE TABLE LignePanier (
+    idLigne INT PRIMARY KEY AUTO_INCREMENT, quantite INT NOT NULL, prixUnitaire FLOAT,
+    idPanier INT, idProduit INT,
+    FOREIGN KEY (idPanier) REFERENCES Panier(idPanier) ON DELETE CASCADE,
+    FOREIGN KEY (idProduit) REFERENCES Produit(idProduit)
+) ENGINE=InnoDB;
+
+CREATE TABLE LigneCommande (
+    idLigne INT PRIMARY KEY AUTO_INCREMENT, quantite INT NOT NULL, prixUnitaire FLOAT,
+    idCommande INT, idProduit INT,
+    FOREIGN KEY (idCommande) REFERENCES Commande(idCommande) ON DELETE CASCADE,
+    FOREIGN KEY (idProduit) REFERENCES Produit(idProduit)
+) ENGINE=InnoDB;
+
+CREATE TABLE Produit_Promotion (
+    idProduit INT, idPromotion INT,
+    PRIMARY KEY (idProduit, idPromotion),
+    FOREIGN KEY (idProduit) REFERENCES Produit(idProduit) ON DELETE CASCADE,
+    FOREIGN KEY (idPromotion) REFERENCES Promotion(idPromotion) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE Avis (
+    idAvis INT PRIMARY KEY AUTO_INCREMENT, note INT, commentaire TEXT, dateAvis DATE,
+    estVisible BOOLEAN DEFAULT TRUE, idClient INT, idProduit INT,
+    FOREIGN KEY (idClient) REFERENCES Client(idUtilisateur),
+    FOREIGN KEY (idProduit) REFERENCES Produit(idProduit)
+) ENGINE=InnoDB;
+
+CREATE TABLE Question (
+    idQuestion INT PRIMARY KEY AUTO_INCREMENT, texte TEXT, reponse TEXT, dateQuestion DATETIME,
+    dateReponse DATETIME, estRepondue BOOLEAN DEFAULT FALSE, 
+    idClient INT, idAdmin INT, idProduit INT,
+    FOREIGN KEY (idClient) REFERENCES Client(idUtilisateur),
+    FOREIGN KEY (idAdmin) REFERENCES Administrateur(idUtilisateur),
+    FOREIGN KEY (idProduit) REFERENCES Produit(idProduit)
+) ENGINE=InnoDB;
+
+-- [5] PAIEMENTS (LES 5 TABLES)
+CREATE TABLE Paiement (
+    idPaiement INT PRIMARY KEY AUTO_INCREMENT, typePaiement VARCHAR(50), montant FLOAT,
+    datePaiement DATETIME, statut VARCHAR(50), idCommande INT UNIQUE,
+    FOREIGN KEY (idCommande) REFERENCES Commande(idCommande)
+) ENGINE=InnoDB;
+
+CREATE TABLE PaiementCCP (
+    idPaiement INT PRIMARY KEY, numeroCCP VARCHAR(20), cle VARCHAR(2),
+    FOREIGN KEY (idPaiement) REFERENCES Paiement(idPaiement) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE PaiementLivraison (
+    idPaiement INT PRIMARY KEY, confirmeParLivreur BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (idPaiement) REFERENCES Paiement(idPaiement) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE PaiementCIB (
+    idPaiement INT PRIMARY KEY, numeroCarte VARCHAR(20), dateExpiration VARCHAR(7), cvv VARCHAR(4),
+    FOREIGN KEY (idPaiement) REFERENCES Paiement(idPaiement) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE PaiementDahabia (
+    idPaiement INT PRIMARY KEY, numeroCarte VARCHAR(20),
+    FOREIGN KEY (idPaiement) REFERENCES Paiement(idPaiement) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- [6] LIVRAISON ET NOTIFICATIONS
+CREATE TABLE Livraison (
+    idLivraison INT PRIMARY KEY AUTO_INCREMENT, statut VARCHAR(50), adresse TEXT, wilaya VARCHAR(50),
+    dateEstimee DATE, dateEffective DATE, fraisLivraison FLOAT, idCommande INT UNIQUE,
+    FOREIGN KEY (idCommande) REFERENCES Commande(idCommande)
+) ENGINE=InnoDB;
+
+CREATE TABLE SuiviLivraison (
+    idSuivi INT PRIMARY KEY AUTO_INCREMENT, statut VARCHAR(50), localisation TEXT, description TEXT,
+    dateEtape DATETIME, idLivraison INT,
+    FOREIGN KEY (idLivraison) REFERENCES Livraison(idLivraison) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE NotificationAlerte (
+    idNotification INT PRIMARY KEY AUTO_INCREMENT, ancienPrix FLOAT, nouveauPrix FLOAT,
+    dateNotification DATETIME, estLue BOOLEAN DEFAULT FALSE, idAlerte INT,
+    FOREIGN KEY (idAlerte) REFERENCES AlertePrix(idAlerte) ON DELETE CASCADE
+) ENGINE=InnoDB;

@@ -1,0 +1,33 @@
+-- ============================================================
+-- MIGRATION : Étendre la table Promotion existante
+-- pour gérer les codes promo fidélité
+-- À exécuter dans digital_store_db via phpMyAdmin
+-- ============================================================
+
+-- [1] Ajouter les colonnes manquantes à Promotion
+ALTER TABLE Promotion
+    ADD COLUMN codePromo      VARCHAR(50)  NULL UNIQUE   AFTER titre,
+    ADD COLUMN typeReduction  VARCHAR(20)  DEFAULT 'percent' AFTER codePromo,
+    -- 'percent' = tauxReduction est un %, 'fixed' = montant fixe en DA
+    ADD COLUMN idClientOwner  INT          NULL           AFTER typeReduction,
+    -- NULL = code public (DIGITAL10), sinon appartient à ce client
+    ADD COLUMN rewardId       VARCHAR(30)  NULL           AFTER idClientOwner,
+    -- 'disc5' | 'disc50k' | 'delivery' | 'vip' | 'official'
+    ADD COLUMN estUtilise     BOOLEAN      DEFAULT FALSE  AFTER rewardId,
+    ADD COLUMN dateUtilisation DATETIME    NULL           AFTER estUtilise,
+    ADD COLUMN idCommandeUsed INT          NULL           AFTER dateUtilisation,
+    ADD FOREIGN KEY (idClientOwner)  REFERENCES utilisateur(idUtilisateur) ON DELETE CASCADE,
+    ADD FOREIGN KEY (idCommandeUsed) REFERENCES commande(idCommande)       ON DELETE SET NULL;
+
+-- [2] Index pour la vérification rapide au panier
+CREATE INDEX idx_promo_code   ON Promotion(codePromo);
+CREATE INDEX idx_promo_client ON Promotion(idClientOwner);
+
+-- [3] Insérer DIGITAL10 comme promotion officielle permanente
+INSERT IGNORE INTO Promotion
+    (titre, codePromo, typeReduction, tauxReduction, dateDebut, dateFin,
+     estActive, idClientOwner, rewardId, estUtilise)
+VALUES
+    ('Code officiel DigitalStore', 'DIGITAL10', 'percent', 10,
+     '2024-01-01', '2099-12-31',
+     TRUE, NULL, 'official', FALSE);

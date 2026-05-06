@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Store - Accueil & Connexion</title>
+    <link rel="stylesheet" href="sombre.css">
+    <script src="sombre.js"></script>
+    <style>
+/* ===== PALETTE PRINCIPALE ===== */
+:root {
+    --primary:       #024052;
+    --primary-light: #035870;
+    --primary-soft:  #d0e8ef;
+    --accent:        #56615f;
+    --accent-light:  #7a8785;
+    --accent-soft:   #eaeded;
+    --white:         #ffffff;
+    --text-dark:     #0d1f26;
+    --text-muted:    #5c6b70;
+    --border:        #c4d4d9;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+body {
+    background: linear-gradient(135deg, #d6eaf0 0%, #b8d9e4 50%, #d0e8ef 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: var(--text-dark);
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50%       { transform: translateY(-20px) rotate(2deg); }
+}
+@keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50%       { opacity: 0.8; transform: scale(1.1); }
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.bg-animated { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.bg-circle   { position: absolute; border-radius: 50%; filter: blur(60px); animation: pulse 6s ease-in-out infinite; }
+.bg-circle-1 { top: 5%;  left: 5%;  width: 300px; height: 300px; background: rgba(2, 64, 82, 0.12);  animation: pulse 5s infinite; }
+.bg-circle-2 { bottom: 10%; right: 5%; width: 400px; height: 400px; background: rgba(86, 97, 95, 0.12); animation: pulse 7s infinite reverse; }
+.bg-circle-3 { top: 40%; left: 45%; width: 250px; height: 250px; background: rgba(2, 64, 82, 0.07);  animation: pulse 8s infinite 1s; }
+
+.hidden      { display: none !important; }
+.text-center { text-align: center; }
+.highlight   { color: var(--primary); }
+
+.container { position: relative; z-index: 10; max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+.logo-section  { animation: fadeIn 0.8s ease-out; margin-bottom: 50px; }
+.logo-wrapper  { display: inline-block; position: relative; margin-bottom: 20px; animation: float 4s ease-in-out infinite; }
+.logo-img      { width: 160px; height: 160px; border-radius: 50%; border: 4px solid var(--white); box-shadow: 0 20px 40px rgba(0,0,0,0.2); position: relative; z-index: 2; }
+.logo-glow     { position: absolute; inset: -10px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 50%; filter: blur(30px); opacity: 0.4; }
+
+.main-title { font-size: 3.5rem; font-weight: 900; margin-bottom: 10px; }
+.subtitle   { font-size: 1.4rem; color: var(--primary); font-weight: 600; margin-bottom: 10px; }
+.description { color: var(--text-muted); max-width: 700px; margin: 0 auto; line-height: 1.6; }
+
+.why-section   { margin: 60px 0; }
+.features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 30px; }
+.feature-card  {
+    background: rgba(255,255,255,0.75); backdrop-filter: blur(10px);
+    padding: 30px; border-radius: 20px; box-shadow: 0 10px 20px rgba(2,64,82,0.08);
+    border: 1px solid rgba(2,64,82,0.1);
+    transition: 0.3s; animation: float 5s ease-in-out infinite;
+}
+.feature-card:nth-child(2) { animation-delay: 0.5s; }
+.feature-card:nth-child(3) { animation-delay: 1s; }
+.feature-card:hover { transform: translateY(-6px); box-shadow: 0 16px 32px rgba(2,64,82,0.15); }
+.feature-icon  { font-size: 2.5rem; margin-bottom: 15px; display: block; }
+.feature-title { font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 10px; }
+
+.options-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 50px 0; }
+.option-card  {
+    flex: 1 1 300px; max-width: 380px; background: rgba(255,255,255,0.92);
+    padding: 35px; border-radius: 24px; box-shadow: 0 15px 35px rgba(2,64,82,0.1);
+    cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid transparent; text-align: left;
+}
+.option-card:hover { transform: scale(1.05); border-color: var(--primary); }
+.option-card.primary { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: var(--white); }
+
+.option-icon-box {
+    width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 15px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; margin-bottom: 20px; transition: 0.3s;
+}
+.option-card.primary .option-icon-box { background: rgba(255,255,255,0.2); }
+.option-card:hover .option-icon-box    { transform: rotate(10deg); }
+
+.option-card h3    { font-size: 1.6rem; margin-bottom: 10px; }
+.option-card p     { margin-bottom: 20px; opacity: 0.9; line-height: 1.5; }
+.option-link       { font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--primary); }
+.option-card.primary .option-link { color: var(--white); }
+
+.tutorial-section {
+    background: var(--white); padding: 50px; border-radius: 30px;
+    box-shadow: 0 20px 40px rgba(2,64,82,0.1); margin-top: 50px;
+    border: 1px solid var(--border);
+}
+.steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 30px; margin-top: 30px; }
+.step       { display: flex; gap: 15px; }
+.step-num   {
+    width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: var(--white); border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-weight: 800; flex-shrink: 0;
+}
+.step h4 { margin-bottom: 8px; font-weight: 700; color: var(--primary); }
+.step p  { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+
+.tip-box {
+    margin-top: 40px; padding: 25px; border-radius: 20px;
+    background: linear-gradient(90deg, rgba(2,64,82,0.05), rgba(86,97,95,0.08));
+    border-left: 5px solid var(--primary); display: flex; gap: 20px; align-items: center;
+}
+.promo-code { font-weight: 800; color: var(--primary); background: var(--primary-soft); padding: 2px 8px; border-radius: 5px; }
+
+.form-view {
+    max-width: 450px; margin: 40px auto;
+    background: var(--white); padding: 45px; border-radius: 30px;
+    box-shadow: 0 30px 60px rgba(2,64,82,0.15); animation: fadeIn 0.5s;
+    border: 1px solid var(--border);
+}
+.back-btn        { cursor: pointer; color: var(--primary); font-weight: 700; margin-bottom: 25px; display: inline-flex; align-items: center; gap: 8px; }
+.back-btn:hover  { color: var(--accent); }
+
+input           { width: 100%; padding: 14px 20px; margin-bottom: 18px; border: 2px solid #e8eff2; border-radius: 15px; outline: none; transition: 0.3s; font-size: 1rem; }
+input:focus     { border-color: var(--primary); background: #f7fbfd; box-shadow: 0 0 0 3px rgba(2,64,82,0.08); }
+.btn-submit     { width: 100%; padding: 16px; border: none; border-radius: 15px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: var(--white); font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+.btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(2,64,82,0.3); }
+.btn-submit:disabled { opacity: 0.6; cursor: wait; transform: none; }
+
+/* Message d'erreur/succès */
+.form-msg {
+    padding: 12px 16px; border-radius: 10px; font-size: 0.9rem;
+    margin-bottom: 16px; text-align: center; display: none;
+}
+.form-msg.error   { background: #fef2f2; color: #c0392b; border: 1px solid #f5c6cb; display: block; }
+.form-msg.success { background: #f0fdf4; color: #1a5c3a; border: 1px solid #a7f3d0; display: block; }
+
+.dark-btn {
+    position: fixed; top: 20px; right: 20px;
+    width: 55px; height: 55px; border: none; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: var(--white); font-size: 1.5rem; cursor: pointer;
+    box-shadow: 0 8px 20px rgba(2,64,82,0.3); z-index: 1000;
+    transition: all 0.3s ease;
+}
+.dark-btn:hover { transform: scale(1.1) rotate(10deg); box-shadow: 0 12px 25px rgba(2,64,82,0.4); }
+body.dark-mode .dark-btn { background: linear-gradient(135deg, #111, #333); }
+
+/* Hub Modal */
+.tm-hub-modal { width: 450px !important; border: 2px solid var(--primary); }
+.tm-hub-grid { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+.tm-hub-card {
+    display: flex; align-items: center; gap: 15px; padding: 18px;
+    background: var(--white); border: 2px solid var(--border);
+    border-radius: 20px; cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative; overflow: hidden;
+}
+.tm-hub-card:hover {
+    border-color: var(--primary); background: var(--accent-soft);
+    transform: scale(1.02); box-shadow: 0 10px 25px rgba(2,64,82,0.15);
+}
+.tm-hub-menu-icon {
+    font-size: 18px; color: var(--primary); background: var(--primary-soft);
+    width: 40px; height: 40px; display: flex; align-items: center;
+    justify-content: center; border-radius: 12px; flex-shrink: 0;
+}
+.tm-hub-info { flex: 1; }
+.tm-hub-name { font-weight: 800; color: var(--text-dark); font-size: 16px; margin-bottom: 2px; }
+.tm-hub-text { font-size: 12px; color: var(--text-muted); }
+.tm-hub-arrow { font-size: 20px; color: var(--primary); opacity: 0.5; transition: transform 0.3s ease; }
+.tm-hub-card:hover .tm-hub-arrow { opacity: 1; transform: translateX(5px); }
+.tm-hub-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 6px; background: var(--primary); opacity: 0; transition: opacity 0.3s;
+}
+.tm-hub-card:hover::before { opacity: 1; }
+
+.tm-main-button {
+    display: inline-flex; align-items: center; gap: 12px; padding: 12px 24px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: var(--white); border: none; border-radius: 99px;
+    font-size: 15px; font-weight: 800; letter-spacing: -0.3px; text-transform: uppercase;
+    cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 6px 16px rgba(2,64,82,0.3); user-select: none;
+}
+.tm-btn-emoji { font-size: 18px; animation: tmEmojiSparkle 3s ease-in-out infinite; }
+.tm-btn-text  { display: flex; align-items: center; gap: 6px; }
+.tm-btn-arrow { font-size: 12px; opacity: 0.7; transition: transform 0.3s ease; }
+.tm-main-button:hover { background: linear-gradient(135deg, var(--primary-light), var(--primary)); transform: translateY(-3px); box-shadow: 0 10px 25px rgba(2,64,82,0.4); }
+.tm-main-button:active { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(2,64,82,0.3); }
+
+@keyframes tmEmojiSparkle {
+    0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    50%       { transform: scale(1.2) rotate(15deg); opacity: 0.8; }
+}
+
+/* Dark Mode */
+body.dark-mode {
+    background: linear-gradient(135deg, #0a1a20 0%, #0d2530 50%, #0a1e28 100%);
+    color: #e0edf0;
+}
+body.dark-mode .feature-card,
+body.dark-mode .option-card { background: rgba(2,64,82,0.25); border-color: rgba(2,64,82,0.4); color: #e0edf0; }
+body.dark-mode .option-card.primary { background: linear-gradient(135deg, var(--primary), var(--primary-light)); }
+body.dark-mode .tutorial-section { background: #0d2530; border-color: rgba(2,64,82,0.5); color: #e0edf0; }
+body.dark-mode .tip-box { background: rgba(2,64,82,0.2); }
+body.dark-mode .form-view { background: #0d2530; border-color: rgba(2,64,82,0.5); color: #e0edf0; }
+body.dark-mode input { background: #0a1e28; border-color: rgba(2,64,82,0.5); color: #e0edf0; }
+body.dark-mode input:focus { border-color: var(--primary-light); background: #0d2c3d; }
+body.dark-mode .tm-hub-card { background: #0d2530; border-color: rgba(2,64,82,0.4); }
+body.dark-mode .tm-hub-card:hover { background: #0a1e28; }
+body.dark-mode .tm-hub-name { color: #e0edf0; }
+
+@media (max-width: 768px) {
+    .main-title       { font-size: 2.5rem; }
+    .tutorial-section { padding: 30px 20px; }
+    .tm-hub-modal     { width: 95vw !important; }
+}
+    </style>
+</head>
+
+<body>
+    <div class="bg-animated">
+        <div class="bg-circle bg-circle-1"></div>
+        <div class="bg-circle bg-circle-2"></div>
+        <div class="bg-circle bg-circle-3"></div>
+    </div>
+    
+    <div class="container">
+        
+        <div id="homePage">
+
+<button class="tm-main-button" onclick="openTutorialHub()">
+  <span class="tm-btn-emoji">✨</span>
+  <span class="tm-btn-text">Tutoriels <span class="tm-btn-arrow">▾</span></span>
+</button>
+
+<div id="tm-hub-overlay" class="tm-overlay" onclick="closeTutorialHub(event)">
+  <div class="tm-modal tm-hub-modal">
+    <div class="tm-header">
+      <div>
+        <div class="tm-badge">Centre d'aide</div>
+        <div class="tm-title">Choisissez un tutoriel</div>
+      </div>
+      <button class="tm-close" onclick="closeTutorialHub()">✕</button>
+    </div>
+    
+    <div class="tm-hub-grid">
+      <div class="tm-hub-card" onclick="startFromHub('catalog')">
+        <div class="tm-hub-menu-icon">☰</div> 
+        <div class="tm-hub-info">
+          <div class="tm-hub-name">📦 Le Catalogue</div>
+          <div class="tm-hub-text">Apprendre à chercher et filtrer</div>
+        </div>
+        <div class="tm-hub-arrow">→</div>
+      </div>
+
+      <div class="tm-hub-card" onclick="startFromHub('cart')">
+        <div class="tm-hub-menu-icon">☰</div>
+        <div class="tm-hub-info">
+          <div class="tm-hub-name">🛒 Le Panier</div>
+          <div class="tm-hub-text">Gérer vos articles et promos</div>
+        </div>
+        <div class="tm-hub-arrow">→</div>
+      </div>
+
+      <div class="tm-hub-card" onclick="startFromHub('payment')">
+        <div class="tm-hub-menu-icon">☰</div>
+        <div class="tm-hub-info">
+          <div class="tm-hub-name">💰 Le Paiement</div>
+          <div class="tm-hub-text">Méthodes de paiement sécurisées</div>
+        </div>
+        <div class="tm-hub-arrow">→</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+            <header class="logo-section text-center">
+                <button id="darkModeToggle" class="dark-btn">🌙</button>
+                <div class="logo-wrapper">
+                    <div class="logo-glow"></div>
+                    <img src="images/logo.png" alt="Digital Store Logo" class="logo-img">
+                </div>
+                <h1 class="main-title">Digital<span class="highlight">Store</span></h1>
+                <p class="subtitle">Matériel Informatique de Qualité</p>
+                <p class="description">
+                    Votre destination pour les meilleurs composants, périphériques et écrans au meilleur prix en Algérie. 
+                    Découvrez une large gamme de produits sélectionnés pour leur performance.
+                </p>
+            </header>
+
+            <section class="why-section">
+                <h2 class="text-center">Pourquoi choisir <span class="highlight">Digital Store</span> ?</h2>
+                <div class="features-grid">
+                    <div class="feature-card text-center">
+                        <span class="feature-icon">🎯</span>
+                        <h3 class="feature-title">Produits Authentiques</h3>
+                        <p style="color:#7a7a76; font-size:0.9rem;">100% de produits originaux avec garantie constructeur. Aucune contrefaçon.</p>
+                    </div>
+                    <div class="feature-card text-center">
+                        <span class="feature-icon">⚡</span>
+                        <h3 class="feature-title">Service Express</h3>
+                        <p style="color:#7a7a76; font-size:0.9rem;">Livraison rapide dans toute l'Algérie. Suivi en temps réel de votre commande.</p>
+                    </div>
+                    <div class="feature-card text-center">
+                        <span class="feature-icon">💎</span>
+                        <h3 class="feature-title">Meilleurs Prix</h3>
+                        <p style="color:#7a7a76; font-size:0.9rem;">Tarifs compétitifs avec des promotions régulières. Rapport qualité/prix imbattable.</p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="options-grid">
+                <div class="option-card" onclick="window.location.href='FenetrePrincipale.html'">
+                    <div class="option-icon-box">👁️</div>
+                    <h3>Visiteur</h3>
+                    <p>Explorez notre catalogue complet, comparez les prix et les spécifications sans créer de compte.</p>
+                    <div class="option-link">Continuer en tant que visiteur →</div>
+                </div>
+
+                <div class="option-card" onclick="showView('loginForm')">
+                    <div class="option-icon-box">🔐</div>
+                    <h3>Connexion</h3>
+                    <p>Accédez à votre compte personnel, suivez vos commandes en cours et gérez votre profil.</p>
+                    <div class="option-link">Se connecter →</div>
+                </div>
+
+                <div class="option-card primary" onclick="showView('registerForm')">
+                    <div class="option-icon-box">✨</div>
+                    <h3>Créer un compte</h3>
+                    <p>Inscrivez-vous pour profiter de tous les avantages, sauvegarder vos favoris et commander.</p>
+                    <div class="option-link">Commencer maintenant →</div>
+                </div>
+            </div>
+
+            <section class="tutorial-section">
+                <div class="text-center">
+                    <h2 style="font-size: 2rem;">Comment utiliser <span class="highlight">Digital Store</span> ?</h2>
+                    <p style="color:#7a7a76; margin-top:10px;">Guide rapide en 4 étapes simples</p>
+                </div>
+                
+                <div class="steps-grid">
+                    <div class="step">
+                        <div class="step-num">1</div>
+                        <div>
+                            <h4>Parcourir le catalogue</h4>
+                            <p>Explorez nos catégories : écrans, processeurs, GPU, périphériques et RAM. Utilisez les filtres.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">2</div>
+                        <div>
+                            <h4>Ajouter au panier</h4>
+                            <p>Cliquez sur un produit pour voir les détails et avis. Ajoutez-les en un clic.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">3</div>
+                        <div>
+                            <h4>Passer commande</h4>
+                            <p>Choisissez votre mode de paiement : CIB, Dahabia, CCP ou paiement à la livraison.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">4</div>
+                        <div>
+                            <h4>Suivre votre colis</h4>
+                            <p>Recevez un numéro de suivi. Suivez votre commande sur notre carte interactive.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-box">
+                    <span style="font-size: 2rem;">💡</span>
+                    <div>
+                        <h4 style="margin-bottom:5px;">Astuce</h4>
+                        <p style="color:#666;">Créez un compte pour sauvegarder vos favoris et bénéficier d'offres exclusives. Utilisez le code <span class="promo-code">DIGITAL10</span> pour -10% sur votre première commande !</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ===== FORMULAIRE CONNEXION ===== -->
+        <div id="loginForm" class="form-view hidden">
+            <div class="back-btn" onclick="showView('homePage')">← Retour à l'accueil</div>
+            <h2 class="text-center">Se connecter</h2>
+            <p class="text-center" style="color:#7a7a76; margin: 10px 0 25px;">Accédez à votre espace sécurisé</p>
+            
+            <div id="loginMsg" class="form-msg"></div>
+            
+            <input type="email" id="lEmail" placeholder="exemple@email.com" autocomplete="email">
+            <input type="password" id="lPass" placeholder="Mot de passe" autocomplete="current-password">
+            
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; font-size:0.9rem;">
+                <input type="checkbox" id="rememberMe" style="width:auto; margin:0;"> 
+                <label for="rememberMe">Se souvenir de moi</label>
+            </div>
+
+            <button class="btn-submit" id="loginBtn" onclick="loginAction()">Se connecter →</button>
+            <p class="text-center" style="margin-top:20px; font-size:0.95rem;">
+                Pas encore de compte ? <span onclick="showView('registerForm')" style="color:#497b89; cursor:pointer; font-weight:700;">Créer un compte</span>
+            </p>
+        </div>
+
+        <!-- ===== FORMULAIRE INSCRIPTION ===== -->
+        <div id="registerForm" class="form-view hidden">
+            <div class="back-btn" onclick="showView('homePage')">← Retour à l'accueil</div>
+            <h2 class="text-center">Créer un compte</h2>
+            <p class="text-center" style="color:#7a7a76; margin: 10px 0 25px;">Inscrivez-vous en quelques secondes</p>
+            
+            <div id="registerMsg" class="form-msg"></div>
+            
+            <input type="text" id="rName" placeholder="Prénom Nom" autocomplete="name">
+            <input type="email" id="rEmail" placeholder="exemple@email.com" autocomplete="email">
+            <input type="password" id="rPass" placeholder="Mot de passe (Min. 8 caractères)" autocomplete="new-password">
+            <input type="tel" id="rPhone" placeholder="0550 123 456" autocomplete="tel">
+            <input type="text" id="rAddress" placeholder="Rue, quartier, ville" autocomplete="street-address">
+            
+            <button class="btn-submit" id="registerBtn" onclick="registerAction()">Créer mon compte ✨</button>
+            <p class="text-center" style="margin-top:20px; font-size:0.95rem;">
+                Déjà un compte ? <span onclick="showView('loginForm')" style="color:#497b89; cursor:pointer; font-weight:700;">Se connecter</span>
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+    /* ===================================================
+       UTILITAIRES
+    =================================================== */
+    function showView(viewId) {
+        ['homePage','loginForm','registerForm'].forEach(id => {
+            document.getElementById(id).classList.add('hidden');
+        });
+        document.getElementById(viewId).classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Effacer les messages au changement de vue
+        ['loginMsg','registerMsg'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.className = 'form-msg'; el.textContent = ''; }
+        });
+    }
+
+    function showMsg(elementId, text, type) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        el.textContent = text;
+        el.className = 'form-msg ' + type;
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function setLoading(btnId, loading) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.disabled = loading;
+        if (loading) {
+            btn.dataset.original = btn.textContent;
+            btn.textContent = '⏳ Chargement…';
+        } else {
+            btn.textContent = btn.dataset.original || btn.textContent;
+        }
+    }
+
+    /* ===================================================
+       SAUVEGARDE SESSION  ← Méthode unifiée
+       FenetrePrincipale.html lit "ds-auth-user"
+    =================================================== */
+    function saveAuthSession(user, email) {
+        const displayName = [user.prenom, user.nom]
+            .filter(Boolean).join(' ').trim()
+            || (email || '').split('@')[0]
+            || 'Utilisateur';
+
+        const authData = {
+            id:          user.id,
+            displayName: displayName,
+            email:       user.email || email || ''
+        };
+        localStorage.setItem('ds-auth-user', JSON.stringify(authData));
+        // Compatibilité ancienne clé (FenetrePrincipale peut lire les deux)
+        localStorage.setItem('user', JSON.stringify(user));
+    }
+
+    /* ===================================================
+       CONNEXION
+    =================================================== */
+    async function loginAction() {
+        const email    = document.getElementById('lEmail').value.trim().toLowerCase();
+        const password = document.getElementById('lPass').value;
+
+        if (!email || !password) {
+            showMsg('loginMsg', '⚠️ Remplissez tous les champs.', 'error');
+            return;
+        }
+
+        // Cas admin : redirection directe
+        if (email === 'admin@digitalstore.dz' && password === 'admin123') {
+            saveAuthSession({ id: 0, nom: 'Admin', prenom: '', email }, email);
+            localStorage.setItem('ds_admin_auto', '1');
+            window.location.href = 'FenetreAdmine.html';
+            return;
+        }
+
+        setLoading('loginBtn', true);
+
+        try {
+            const res    = await fetch('/api/login', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ email, password })
+            });
+            const result = await res.json();
+
+            if (!result.success) {
+                showMsg('loginMsg', '❌ ' + (result.message || 'Connexion impossible.'), 'error');
+                setLoading('loginBtn', false);
+                return;
+            }
+
+            // ✅ Sauvegarde de la session (lu par FenetrePrincipale)
+            saveAuthSession(result.user, email);
+
+            showMsg('loginMsg', '✅ Connexion réussie ! Redirection…', 'success');
+
+            // Redirection après un court délai pour que l'utilisateur voit le message
+            setTimeout(() => {
+                window.location.href = 'FenetrePrincipale.html';
+            }, 800);
+
+        } catch (err) {
+            console.error('Login error:', err);
+            showMsg('loginMsg', '❌ Erreur réseau, vérifiez que le serveur est démarré.', 'error');
+            setLoading('loginBtn', false);
+        }
+    }
+
+    /* ===================================================
+       INSCRIPTION
+    =================================================== */
+    async function registerAction() {
+        const fullName = document.getElementById('rName').value.trim();
+        const email    = document.getElementById('rEmail').value.trim().toLowerCase();
+        const password = document.getElementById('rPass').value;
+        const phone    = document.getElementById('rPhone').value.trim();
+        const address  = document.getElementById('rAddress').value.trim();
+
+        if (!fullName || !email || !password || !phone) {
+            showMsg('registerMsg', '⚠️ Remplissez tous les champs obligatoires.', 'error');
+            return;
+        }
+        if (password.length < 8) {
+            showMsg('registerMsg', '⚠️ Le mot de passe doit faire au moins 8 caractères.', 'error');
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showMsg('registerMsg', '⚠️ Adresse email invalide.', 'error');
+            return;
+        }
+
+        const parts  = fullName.split(' ');
+        const prenom = parts[0] || '';
+        const nom    = parts.slice(1).join(' ') || prenom;
+
+        setLoading('registerBtn', true);
+
+        try {
+            const res    = await fetch('/api/register', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ nom, prenom, email, password, telephone: phone })
+            });
+            const result = await res.json();
+
+            if (!result.success) {
+                showMsg('registerMsg', '❌ ' + (result.message || 'Inscription impossible.'), 'error');
+                setLoading('registerBtn', false);
+                return;
+            }
+
+            // Connexion automatique après inscription
+            const loginRes  = await fetch('/api/login', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ email, password })
+            });
+            const loginData = await loginRes.json();
+
+            if (loginData.success) {
+                saveAuthSession(loginData.user, email);
+                showMsg('registerMsg', '🎉 Compte créé et connecté ! Redirection…', 'success');
+                setTimeout(() => { window.location.href = 'FenetrePrincipale.html'; }, 800);
+            } else {
+                // Compte créé mais connexion auto échouée → rediriger vers login
+                showMsg('registerMsg', '✅ Compte créé ! Connectez-vous maintenant.', 'success');
+                setTimeout(() => {
+                    showView('loginForm');
+                    document.getElementById('lEmail').value = email;
+                    setLoading('registerBtn', false);
+                }, 1500);
+            }
+
+        } catch (err) {
+            console.error('Register error:', err);
+            showMsg('registerMsg', '❌ Erreur réseau, vérifiez que le serveur est démarré.', 'error');
+            setLoading('registerBtn', false);
+        }
+    }
+
+    /* ===================================================
+       ENTER KEY : soumettre les formulaires
+    =================================================== */
+    document.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter') return;
+        const active = document.activeElement;
+        if (active && active.id === 'lPass') loginAction();
+        if (active && active.id === 'rAddress') registerAction();
+    });
+
+    /* ===================================================
+       DARK MODE
+    =================================================== */
+    const isDarkMode = localStorage.getItem('darkMode') === 'enabled';
+    if (isDarkMode) document.body.classList.add('dark-mode');
+
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+        this.textContent = isDark ? '☀️' : '🌙';
+    });
+    if (isDarkMode) document.getElementById('darkModeToggle').textContent = '☀️';
+
+    /* ===================================================
+       VÉRIFIER SI DÉJÀ CONNECTÉ : rediriger directement
+    =================================================== */
+    (function checkAlreadyLoggedIn() {
+        try {
+            const raw = localStorage.getItem('ds-auth-user');
+            if (!raw) return;
+            const auth = JSON.parse(raw);
+            if (auth && auth.id) {
+                // Afficher un message discret et rediriger
+                console.log('Déjà connecté en tant que', auth.displayName, '→ redirection');
+                // On ne redirige PAS automatiquement pour laisser le choix
+                // Mais on pourrait si souhaité :
+                // window.location.href = 'FenetrePrincipale.html';
+            }
+        } catch (_) {}
+    })();
+    </script>
+    <script src="FenetreDemarrage.js"></script>
+</body>
+</html>
