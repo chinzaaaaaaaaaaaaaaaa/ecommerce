@@ -1504,6 +1504,7 @@
             data-i="navDelivery">Livraisons</span></div>
         <div class="sb-item" onclick="showSection('points',this)"><i class="fas fa-star"></i> <span
             data-i="navPoints">Points fidélité</span></div>
+        <div class="sb-item" onclick="showSection('promotions',this)"><i class="fas fa-percent"></i> <span>Promotions</span> <span class="sb-badge" id="sbPromos" style="background:var(--orange)">0</span></div>
         <div class="sb-section" data-i="sbUsers">Utilisateurs</div>
         <div class="sb-item" onclick="showSection('users',this)"><i class="fas fa-users"></i> <span
             data-i="navUsers">Utilisateurs</span> <span class="sb-badge" id="sbUsers">0</span></div>
@@ -1666,6 +1667,19 @@
           </div>
         </div>
 
+        <!-- ═══ PROMOTIONS ═══ -->
+        <div class="section" id="sec-promotions">
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title"><i class="fas fa-percent" style="color:var(--orange);margin-right:8px"></i>Gestion des promotions</div>
+              <button class="btn btn-teal btn-sm" onclick="openAddPromo()"><i class="fas fa-plus"></i> Nouvelle promo</button>
+            </div>
+            <div class="table-wrap">
+              <table id="promoTable"></table>
+            </div>
+          </div>
+        </div>
+
         <!-- ═══ USERS ═══ -->
         <div class="section" id="sec-users">
           <div class="box">
@@ -1787,14 +1801,8 @@
           class="form-input" id="pName"></div>
       <div class="form-group"><label class="form-label" data-i="category">Catégorie</label>
         <select class="form-input" id="pCat">
-          <option>Écrans</option>
-          <option>Processeurs</option>
-          <option>Périphériques</option>
-          <option>GPU</option>
-          <option>Stockage</option>
-          <option>RAM</option>
-        </select>
-      </div>
+  <option value="">-- Choisir une catégorie --</option>
+</select>
       <div class="form-row">
         <div class="form-group"><label class="form-label" data-i="priceDA">Prix (DA)</label><input class="form-input"
             type="number" id="pPrice"></div>
@@ -1846,6 +1854,52 @@
         <button class="btn btn-teal" onclick="saveCat()" data-i="save">Enregistrer</button>
         <button class="btn btn-outline" onclick="closeModal('catModal')" data-i="cancel">Annuler</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Promo Modal -->
+  <div class="modal-overlay" id="promoModalOverlay" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center">
+    <div class="modal" style="max-width:480px;width:95%">
+      <button class="modal-close" onclick="closePromoModal()">✕</button>
+      <h3 style="margin-bottom:18px"><i class="fas fa-percent" style="color:var(--orange);margin-right:8px"></i>Nouvelle promotion</h3>
+      <form id="promoForm" onsubmit="event.preventDefault();savePromo()">
+        <div class="form-group" style="margin-bottom:12px">
+          <label class="form-label">Titre</label>
+          <input class="form-input" id="promoTitre" placeholder="Ex: Soldes été 2025" required>
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label class="form-label">Code promo</label>
+          <input class="form-input" id="promoCode" placeholder="Ex: ETE25" style="text-transform:uppercase" required>
+        </div>
+        <div class="form-row" style="gap:10px;display:grid;grid-template-columns:1fr 1fr;margin-bottom:12px">
+          <div class="form-group">
+            <label class="form-label">Type de réduction</label>
+            <select class="form-input" id="promoType" required>
+              <option value="percent">Pourcentage (%)</option>
+              <option value="fixed">Montant fixe (DA)</option>
+              <option value="delivery">Livraison offerte</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Valeur</label>
+            <input class="form-input" id="promoTaux" type="number" min="0" step="any" placeholder="0" required>
+          </div>
+        </div>
+        <div class="form-row" style="gap:10px;display:grid;grid-template-columns:1fr 1fr;margin-bottom:18px">
+          <div class="form-group">
+            <label class="form-label">Date début</label>
+            <input class="form-input" id="promoDebut" type="date" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date fin</label>
+            <input class="form-input" id="promoFin" type="date" required>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button type="button" class="btn btn-outline" onclick="closePromoModal()">Annuler</button>
+          <button type="submit" class="btn btn-teal"><i class="fas fa-save"></i> Créer la promotion</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -2336,7 +2390,7 @@
 
       // ── Catégories depuis la BDD ────────────────────────────────────
       try {
-        const r = await fetch('/api/categories');
+        const r = await fetch('/api/admin/categories');
         const d = await r.json();
         if (d.success) {
           categories = d.categories.map(c => ({
@@ -2402,19 +2456,21 @@
       document.getElementById('sec-' + id).classList.add('active');
       document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
       el.classList.add('active');
-      const titleKeys = { dashboard: 'navDashboard', products: 'navProducts', categories: 'navCategories', orders: 'navOrders', delivery: 'navDelivery', points: 'navPoints', users: 'navUsers', reviews: 'navReviews', questions: 'navQuestions', comparator: 'navComparator', recommendations: 'navReco' };
+      const titleKeys = { dashboard: 'navDashboard', products: 'navProducts', categories: 'navCategories', orders: 'navOrders', delivery: 'navDelivery', points: 'navPoints', promotions: 'navPromotions', users: 'navUsers', reviews: 'navReviews', questions: 'navQuestions', comparator: 'navComparator', recommendations: 'navReco' };
       document.getElementById('topbarTitle').textContent = t(titleKeys[id] || id);
       currentSection = id; renderSection();
     }
     function renderSection() {
       updateBadges();
-      const r = { dashboard: renderDashboard, products: renderProducts, categories: renderCategories, orders: renderOrders, delivery: renderDelivery, points: renderPoints, users: renderUsers, reviews: renderReviews, questions: renderQuestions, comparator: renderComparator, recommendations: renderRecommendations };
+      const r = { dashboard: renderDashboard, products: renderProducts, categories: renderCategories, orders: renderOrders, delivery: renderDelivery, points: renderPoints, promotions: renderPromotions, users: renderUsers, reviews: renderReviews, questions: renderQuestions, comparator: renderComparator, recommendations: renderRecommendations };
       if (r[currentSection]) r[currentSection]();
     }
     function updateBadges() {
-      document.getElementById('sbProd').textContent    = products.length;
-      document.getElementById('sbOrders').textContent  = orders.length;
-      document.getElementById('sbUsers').textContent   = users.length;
+      document.getElementById('sbProd').textContent    = (products || []).length;
+document.getElementById('sbOrders').textContent  = (orders || []).length;
+document.getElementById('sbUsers').textContent   = (users || []).length;
+      const nowBadge = new Date();
+      document.getElementById('sbPromos').textContent = (promotions || []).filter(p => p.estActive && new Date(p.dateFin) > nowBadge).length;
       // Badge avis : on recharge depuis la BDD pour avoir le vrai compte
       fetch('/api/admin/reviews')
         .then(r => r.json())
@@ -2450,6 +2506,18 @@
         const delivered = orders.filter(o => o.status === 'Livré').length;
         const avgRating = (products.reduce((s, p) => s + (p.rating || 0), 0) / Math.max(products.length, 1)).toFixed(1);
 
+       
+
+        // Charger stats BDD d'abord
+        let stats = null;
+        try {
+          const rStats = await fetch('/api/admin/stats').then(r => r.json());
+          if (rStats.success) stats = rStats.stats;
+        } catch(e) { console.error('Stats error:', e); }
+
+        const caFormate = stats ? (Number(stats.caTotal)/1000).toFixed(0) + 'k' : '—';
+        const nouveauxCl = stats ? stats.nouveauxClients : '—';
+
         document.getElementById('dashStats').innerHTML = `
     <div class="stat-card"><div class="stat-icon si-teal"><i class="fas fa-boxes"></i></div><div class="stat-val">${products.length}</div><div class="stat-lbl">${t('productCatalog')}</div></div>
     <div class="stat-card"><div class="stat-icon si-blue"><i class="fas fa-shopping-cart"></i></div><div class="stat-val">${orders.length}</div><div class="stat-lbl">${t('navOrders')}</div></div>
@@ -2457,16 +2525,36 @@
     <div class="stat-card"><div class="stat-icon si-orange"><i class="fas fa-comment-alt"></i></div><div class="stat-val">${pending}</div><div class="stat-lbl">${t('pendingReviews')}</div></div>
     <div class="stat-card"><div class="stat-icon si-teal"><i class="fas fa-check-circle"></i></div><div class="stat-val">${delivered}</div><div class="stat-lbl">${t('delivered')}</div></div>
     <div class="stat-card"><div class="stat-icon si-yellow"><i class="fas fa-star"></i></div><div class="stat-val">${avgRating}</div><div class="stat-lbl">${t('rating')}</div></div>
+    <div class="stat-card"><div class="stat-icon si-teal"><i class="fas fa-money-bill-wave"></i></div><div class="stat-val">${caFormate}</div><div class="stat-lbl">CA Total</div></div>
+    <div class="stat-card"><div class="stat-icon si-blue"><i class="fas fa-user-plus"></i></div><div class="stat-val">${nouveauxCl}</div><div class="stat-lbl">Nouveaux clients</div></div>
   `;
-        const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'];
-        const vals = [42000, 68000, 55000, 91000, 73000, 85000];
-        const max = Math.max(...vals);
-        document.getElementById('dashChart').innerHTML = vals.map((v, i) => `
+       
+
+        // Graphique ventes par mois (vraies données)
+        if (stats && stats.ventesParMois && stats.ventesParMois.length > 0) {
+          const ventesData = stats.ventesParMois;
+          const monthNames = {
+            '01':'Jan','02':'Fév','03':'Mar','04':'Avr',
+            '05':'Mai','06':'Juin','07':'Juil','08':'Aoû',
+            '09':'Sep','10':'Oct','11':'Nov','12':'Déc'
+          };
+          const vals   = ventesData.map(v => Number(v.ca));
+          const months = ventesData.map(v => monthNames[v.mois.split('-')[1]] || v.mois);
+          const max    = Math.max(...vals, 1);
+          document.getElementById('dashChart').innerHTML = vals.map((v, i) => `
     <div class="chart-bar-wrap">
-      <div class="chart-bar-val">${(v / 1000).toFixed(0)}k</div>
-      <div class="chart-bar" style="height:${Math.round((v / max) * 80)}px" title="${v.toLocaleString()} DA"></div>
+      <div class="chart-bar-val">${(v/1000).toFixed(0)}k</div>
+      <div class="chart-bar" style="height:${Math.round((v/max)*80)}px" title="${v.toLocaleString()} DA"></div>
       <div style="font-size:10px;color:var(--muted);margin-top:3px">${months[i]}</div>
     </div>`).join('');
+        } else {
+          document.getElementById('dashChart').innerHTML =
+            `<div style="color:var(--muted);padding:20px;text-align:center">Aucune vente ce mois</div>`;
+        }
+
+        // Ajouter stats CA et nouveaux clients dans les cartes
+        
+
         drawDonut();
         document.getElementById('dashOrdersTable').innerHTML = `
     <thead><tr><th>${t('thID')}</th><th>${t('thClient')}</th><th>${t('thItems')}</th><th>${t('thTotal')}</th><th>${t('thStatus')}</th></tr></thead>
@@ -2515,10 +2603,24 @@
 
     async function renderProducts() {
       try {
-        const res = await fetch('/api/admin/products');
-        const data = await res.json();
-        if (data.success) products = data.products;
+        const [resProd, resCat] = await Promise.all([
+          fetch('/api/admin/products').then(r => r.json()),
+          fetch('/api/categories').then(r => r.json())
+        ]);
+        if (resProd.success) products = resProd.products;
+        // Remplir le select catégorie avec les vrais IDs
+        if (resCat.success) {
+          const sel = document.getElementById('pCat');
+          if (sel) {
+            sel.innerHTML = '<option value="">-- Choisir --</option>' +
+              resCat.categories.map(c =>
+                `<option value="${c.idCategorie}">${c.nom}</option>`
+              ).join('');
+          }
+        }
       } catch (e) { console.warn('renderProducts fetch error:', e); }
+
+
 
       document.getElementById('prodTable').innerHTML = `
     <thead><tr>
@@ -2609,39 +2711,88 @@
       openModal('prodModal');
     }
 
-    //function saveProd() {
-    //const idx=parseInt(document.getElementById('prodIdx').value);
-    //const item={
-    //id: idx>=0 ? products[idx].id : Date.now(),
-    //name: document.getElementById('pName').value||'Nouveau produit',
-    /*cat:  document.getElementById('pCat').value,
-    price: parseFloat(document.getElementById('pPrice').value)||0,
-    oldPrice: parseFloat(document.getElementById('pOld').value)||null,
-    rating: parseFloat(document.getElementById('pRating').value)||4.5,
-    ratingCount: idx>=0?(products[idx].ratingCount||0):0,
-    badge: document.getElementById('pBadge').value||null,
-    img:   document.getElementById('pImg').value||'',
-    specs: document.getElementById('pSpecs').value||'',
-    stock: true,
-    desc:  idx>=0?(products[idx].desc||''):'',
-    specItems: idx>=0?(products[idx].specItems||{}):{},
-    reviews: idx>=0?(products[idx].reviews||[]):[],
-    imgs: idx>=0?(products[idx].imgs||[]):[]
-  };
-  if(idx>=0) products[idx]=item; else products.push(item);
-  saveData('ds_products',products);
-  localStorage.setItem('articles',JSON.stringify(products));
-  closeModal('prodModal'); renderProducts(); updateBadges(); toast(t('saved'));
-}*/
+    async function saveProd() {
+  const idx = parseInt(document.getElementById('prodIdx').value);
+  
+  const nom         = document.getElementById('pName').value.trim();
+  const idCategorie = document.getElementById('pCat').value;
+  const prix        = parseFloat(document.getElementById('pPrice').value) || 0;
+  const note        = parseFloat(document.getElementById('pRating').value) || 4.5;
+  const specs       = document.getElementById('pSpecs').value.trim();
+  const stock       = parseInt(document.getElementById('pStock').value) || 0;
+  const marque      = document.getElementById('pMarque').value.trim();
+  const image       = document.getElementById('pImg').value.trim();
 
-    /*function delProd(i) { if(!confirm(t('confirmDeleteProd'))) return; products.splice(i,1); saveData('ds_products',products); localStorage.setItem('articles',JSON.stringify(products)); renderProducts(); updateBadges(); toast(t('deleted')); }*/
+  if (!nom) { toast('⚠️ Le nom est obligatoire'); return; }
+  if (!idCategorie) { toast('⚠️ La catégorie est obligatoire'); return; }
+  if (!prix) { toast('⚠️ Le prix est obligatoire'); return; }
 
+  const body = { nom, idCategorie, prix, noteMoyenne: note,
+                 description: specs, stock, marque, image,
+                 estDisponible: 1 };
+
+  try {
+    let url, method;
+    if (idx >= 0 && products[idx] && products[idx].id) {
+      // Modifier produit existant
+      url    = `/api/products/${products[idx].id}`;
+      method = 'PUT';
+    } else {
+      // Ajouter nouveau produit
+      url    = '/api/products';
+      method = 'POST';
+    }
+
+    const resp = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+
+    if (data.success) {
+      toast(idx >= 0 ? '✅ Produit modifié' : '✅ Produit ajouté');
+      closeModal('prodModal');
+      // Recharger les produits depuis la BDD
+      const rProd = await fetch('/api/admin/products').then(r => r.json());
+      if (rProd.success) products = rProd.products;
+      renderProducts();
+      updateBadges();
+    } else {
+      toast('❌ ' + (data.message || 'Erreur'));
+    }
+  } catch(e) {
+    console.error('saveProd error:', e);
+    toast('❌ Erreur connexion serveur');
+  }
+}
+
+async function delProd(i) {
+  if (!confirm(t('confirmDeleteProd'))) return;
+  const prod = products[i];
+  if (!prod || !prod.id) { toast('❌ Produit introuvable'); return; }
+  try {
+    const resp = await fetch(`/api/admin/products/${prod.id}`, { method: 'DELETE' });
+    const data = await resp.json();
+    if (data.success) {
+      toast('🗑️ Produit supprimé');
+      const rProd = await fetch('/api/admin/products').then(r => r.json());
+      if (rProd.success) products = rProd.products;
+      renderProducts();
+      updateBadges();
+    } else {
+      toast('❌ ' + (data.message || 'Erreur'));
+    }
+  } catch(e) {
+    toast('❌ Erreur connexion serveur');
+  }
+}
     async function renderCategories() {
       try {
-        const r = await fetch('/api/categories');
+        const r = await fetch('/api/admin/categories');
         const d = await r.json();
         if (d.success) categories = d.categories.map(c => ({
-          id: c.idCategorie, name: c.nom, icon: c.icon || '📦', desc: c.desc || ''
+          id: c.idCategorie, name: c.nom, icon: c.icone || '📦', desc: c.description || '', nbProduits: c.nbProduits || 0
         }));
       } catch(e) { console.warn('renderCategories fetch error:', e); }
       document.getElementById('catTable').innerHTML = `
@@ -2649,7 +2800,7 @@
     <tbody>${categories.map((c, i) => `<tr>
       <td><strong>${c.name}</strong></td><td style="font-size:20px">${c.icon || '📦'}</td>
       <td style="color:var(--muted);font-size:12.5px">${c.desc || '—'}</td>
-      <td><span class="badge badge-teal">${products.filter(p => p.cat === c.name).length}</span></td>
+      <td><span class="badge badge-teal">${c.nbProduits}</span></td>
       <td><div class="td-actions">
         <button class="btn btn-outline btn-sm" onclick="openEditCat(${i})"><i class="fas fa-edit"></i></button>
         <button class="btn btn-danger btn-sm" onclick="delCat(${c.id || i})"><i class="fas fa-trash"></i></button>
@@ -2668,7 +2819,11 @@
           await fetch('/api/admin/categories', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nom: name })
+            body: JSON.stringify({ 
+  nom: name,
+  icone: document.getElementById('catIcon').value.trim() || '📦',
+  description: document.getElementById('catDesc').value.trim()
+})
           });
         } else {
           // Modification
@@ -2677,13 +2832,37 @@
             await fetch(`/api/admin/categories/${c.id}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ nom: name })
+              body: JSON.stringify({ 
+  nom: name,
+  icone: document.getElementById('catIcon').value.trim() || '📦',
+  description: document.getElementById('catDesc').value.trim()
+})
             });
           }
         }
       } catch(e) { console.warn('saveCat error:', e); }
       closeModal('catModal'); renderCategories(); toast(t('saved'));
     }
+
+
+    async function delCat(id) {
+  if (!confirm('Supprimer cette catégorie ?')) return;
+  try {
+    const resp = await fetch(`/api/admin/categories/${id}`, { method: 'DELETE' });
+    const data = await resp.json();
+    if (data.success) {
+      toast('🗑️ Catégorie supprimée');
+      renderCategories();
+    } else {
+      toast('❌ ' + data.message);
+    }
+  } catch(e) {
+    toast('❌ Erreur connexion serveur');
+  }
+}
+
+
+
     async function delCat(idOrIdx) {
       if (!confirm(t('confirmDelete'))) return;
       // idOrIdx peut être l'id BDD ou un index
@@ -2695,6 +2874,98 @@
         }
       } catch(e) { console.warn('delCat error:', e); }
       renderCategories(); toast(t('deleted'));
+    }
+
+    /* ══════════ PROMOTIONS ══════════ */
+    let promotions = [];
+    async function renderPromotions() {
+      try {
+        const r = await fetch('/api/admin/promotions');
+        const d = await r.json();
+        if (d.success) promotions = d.promotions;
+      } catch(e) { console.warn('renderPromotions error:', e); }
+
+      const now = new Date();
+      document.getElementById('sbPromos').textContent = promotions.filter(p => p.estActive && new Date(p.dateFin) > now).length;
+
+      const typeLabel = { percent: 'Pourcentage', fixed: 'Montant fixe', delivery: 'Livraison offerte', vip: 'VIP' };
+      document.getElementById('promoTable').innerHTML = `
+        <thead><tr>
+          <th>Titre</th><th>Code</th><th>Type</th><th>Valeur</th>
+          <th>Début</th><th>Fin</th><th>Statut</th><th>Actions</th>
+        </tr></thead>
+        <tbody>${promotions.length === 0 ? `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Aucune promotion créée</td></tr>` :
+        promotions.map(p => {
+          const expired = new Date(p.dateFin) < now;
+          const statusBadge = !p.estActive
+            ? `<span class="badge" style="background:var(--red-light);color:var(--red)">Désactivée</span>`
+            : expired
+              ? `<span class="badge" style="background:var(--surface2);color:var(--muted)">Expirée</span>`
+              : `<span class="badge badge-teal">Active ✓</span>`;
+          const valeur = p.typeReduction === 'delivery' ? '—' : p.typeReduction === 'percent' || p.typeReduction === 'vip' ? `${p.tauxReduction}%` : `${Number(p.tauxReduction).toLocaleString('fr-DZ')} DA`;
+          return `<tr>
+            <td><strong>${p.titre}</strong></td>
+            <td><code style="background:var(--surface2);padding:2px 7px;border-radius:5px;font-size:12px">${p.codePromo}</code></td>
+            <td>${typeLabel[p.typeReduction] || p.typeReduction}</td>
+            <td>${valeur}</td>
+            <td style="font-size:12px;color:var(--muted)">${new Date(p.dateDebut).toLocaleDateString('fr-FR')}</td>
+            <td style="font-size:12px;color:var(--muted)">${new Date(p.dateFin).toLocaleDateString('fr-FR')}</td>
+            <td>${statusBadge}</td>
+            <td><div class="td-actions">
+              <button class="btn btn-outline btn-sm" title="${p.estActive ? 'Désactiver' : 'Activer'}" onclick="togglePromo(${p.idPromotion})">
+                <i class="fas fa-${p.estActive ? 'toggle-on' : 'toggle-off'}"></i>
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="delPromo(${p.idPromotion})">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div></td>
+          </tr>`;
+        }).join('')}</tbody>`;
+    }
+
+    function openAddPromo() {
+      const m = document.getElementById('promoModalOverlay');
+      m.style.display = 'flex';
+      document.getElementById('promoForm').reset();
+    }
+    function closePromoModal() {
+      document.getElementById('promoModalOverlay').style.display = 'none';
+    }
+    async function savePromo() {
+      const titre       = document.getElementById('promoTitre').value.trim();
+      const codePromo   = document.getElementById('promoCode').value.trim().toUpperCase();
+      const typeReduction = document.getElementById('promoType').value;
+      const tauxReduction = document.getElementById('promoTaux').value;
+      const dateDebut   = document.getElementById('promoDebut').value;
+      const dateFin     = document.getElementById('promoFin').value;
+      if (!titre || !codePromo || !typeReduction || tauxReduction === '' || !dateDebut || !dateFin) {
+        toast('❌ Tous les champs sont obligatoires'); return;
+      }
+      try {
+        const r = await fetch('/api/admin/promotions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ titre, codePromo, typeReduction, tauxReduction, dateDebut, dateFin })
+        });
+        const d = await r.json();
+        if (d.success) { toast('✅ Promotion créée'); closePromoModal(); renderPromotions(); }
+        else toast('❌ ' + d.message);
+      } catch(e) { toast('❌ Erreur serveur'); }
+    }
+    async function togglePromo(id) {
+      try {
+        await fetch(`/api/admin/promotions/${id}/toggle`, { method: 'PUT' });
+        renderPromotions(); toast('✅ Statut modifié');
+      } catch(e) { toast('❌ Erreur serveur'); }
+    }
+    async function delPromo(id) {
+      if (!confirm('Supprimer cette promotion ?')) return;
+      try {
+        const r = await fetch(`/api/admin/promotions/${id}`, { method: 'DELETE' });
+        const d = await r.json();
+        if (d.success) { toast('🗑️ Promotion supprimée'); renderPromotions(); }
+        else toast('❌ ' + d.message);
+      } catch(e) { toast('❌ Erreur serveur'); }
     }
 
     async function renderOrders() {
@@ -3358,7 +3629,7 @@
     document.getElementById('appShell').style.display = 'none';
     initTheme();
   </script>
-  <script src="/api.js"></script>
+  
 </body>
 
 </html>
