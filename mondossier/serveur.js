@@ -1214,63 +1214,553 @@ app.get("/api/cart/:idClient", async (req, res) => {
 });
 
 // ── PUT panier (sync complète : vide + réinsère)
+// ── PUT panier (sync complète : vide + réinsère)
 app.put("/api/cart/:idClient", async (req, res) => {
   const { items } = req.body;
   if (!Array.isArray(items)) {
     return res.json({ success: false, message: "Items doit être un tableau" });
   }
-
-  const connection = await pool.getConnection();
   try {
-    await connection.beginTransaction();
-
-    // Créer ou récupérer le panier
-    await connection.query(
-      "INSERT INTO panier (dateCreation, idClient) VALUES (NOW(), ?) ON DUPLICATE KEY UPDATE dateCreation=dateCreation",
-      [req.params.idClient]
-    );
-
-    const [panierRows] = await connection.query(
+    let panierRows = await query(
       "SELECT idPanier FROM panier WHERE idClient=?",
       [req.params.idClient]
     );
-
     if (!panierRows.length) {
-      throw new Error("Panier introuvable après insertion");
+      await query(
+        "INSERT INTO panier (dateCreation, idClient) VALUES (NOW(), ?)",
+        [req.params.idClient]
+      );
+      panierRows = await query(
+        "SELECT idPanier FROM panier WHERE idClient=?",
+        [req.params.idClient]
+      );
     }
-
     const idPanier = panierRows[0].idPanier;
-
-    // Vider les lignes existantes
-    await connection.query("DELETE FROM lignepanier WHERE idPanier=?", [idPanier]);
-
-    // Réinsérer
+    await query("DELETE FROM lignepanier WHERE idPanier=?", [idPanier]);
     for (const item of items) {
       if (!item.idProduit || !item.quantite || item.quantite <= 0) continue;
-      await connection.query(
+      await query(
         "INSERT INTO lignepanier (quantite, prixUnitaire, idPanier, idProduit) VALUES (?, ?, ?, ?)",
         [item.quantite, item.prixUnitaire || 0, idPanier, item.idProduit]
       );
     }
-
-    await connection.commit();
     res.json({ success: true });
   } catch (err) {
-    await connection.rollback();
     console.error("Sync cart error:", err.message);
     res.json({ success: false, message: err.message });
-  } finally {
-    connection.release();
   }
 });
 
 
-
-
-
+/* =========================
+   GESTION DES AVIS (Admin)
+========================= */
 
 /* =========================
-   START SERVER
+   GESTION DES AVIS (Admin)
+========================= */
+app.get("/api/admin/reviews", async (req, res) => {
+  try {
+    const rows = await query(`
+      SELECT 
+        a.idAvis, a.note, a.commentaire, a.dateAvis, a.estVisible,
+        p.nom AS nomProduit, p.idProduit,
+        u.prenom AS prenomClient, u.nom AS nomClient, u.email AS emailClient
+      FROM avis a
+      LEFT JOIN produit p ON p.idProduit = a.idProduit
+      LEFT JOIN utilisateur u ON u.idUtilisateur = a.idClient
+      ORDER BY a.dateAvis DESC
+    `);
+    const reviews = rows.map(r => ({
+      id: r.idAvis,
+      note: r.note,
+      commentaire: r.commentaire,
+      date: new Date(r.dateAvis).toLocaleDateString("fr-FR", {
+        day: "numeric", month: "long", year: "numeric"
+      }),
+      estVisible: r.estVisible === 1,
+      produit: { id: r.idProduit, nom: r.nomProduit || "Produit supprimé" },
+      client: {
+        nom: (r.prenomClient + " " + r.nomClient).trim() || "Anonyme",
+        email: r.emailClient || ""
+      }
+    }));
+    res.json({ success: true, reviews });
+  } catch (err) {
+    res.json({ success: false, reviews: [] });
+  }
+});
+
+app.put("/api/admin/reviews/:id/approve", async (req, res) => {
+  try {
+    await query("UPDATE avis SET estVisible = 1 WHERE idAvis = ?", [req.params.id]);
+    res.json({ success: true, message: "Avis approuvé" });
+  } catch (err) {
+    res.json({ success: false, message: "Erreur approbation" });
+  }
+});
+
+app.put("/api/admin/reviews/:id/hide", async (req, res) => {
+  try {
+    await query("UPDATE avis SET estVisible = 0 WHERE idAvis = ?", [req.params.id]);
+    res.json({ success: true, message: "Avis masqué" });
+  } catch (err) {
+    res.json({ success: false, message: "Erreur masquage" });
+  }
+});
+
+app.delete("/api/admin/reviews/:id", async (req, res) => {
+  try {
+    await query("DELETE FROM avis WHERE idAvis = ?", [req.params.id]);
+    res.json({ success: true, message: "Avis supprimé" });
+  } catch (err) {
+    res.json({ success: false, message: "Erreur suppression" });
+  }
+});
+
+/* =========================
+   GESTION DES QUESTIONS (Admin)
+========================= */
+
+// 1. Lister toutes les questions
+app.get("/api/admin/questions", async (req, res) => {
+  try {
+    const rows = await query(`
+      SELECT 
+        q.idQuestion,
+        q.texte,
+        q.reponse,
+        q.dateQuestion,
+        q.dateReponse,
+        q.estRepondue,
+        p.nom AS nomProduit,
+        p.idProduit,
+        u.prenom AS prenomClient,
+        u.nom AS nomClient
+      FROM question q
+      LEFT JOIN produit p ON p.idProduit = q.idProduit
+      LEFT JOIN utilisateur u ON u.idUtilisateur = q.idClient
+      ORDER BY q.estRepondue ASC, q.dateQuestion DESC
+    `);
+
+    const questions = rows.map(r => ({
+      id: r.idQuestion,
+      texte: r.texte,
+      reponse: r.reponse || null,
+      dateQuestion: new Date(r.dateQuestion).toLocaleDateString("fr-FR", {
+        day: "numeric", month: "long", year: "numeric"
+      }),
+      dateReponse: r.dateReponse ? new Date(r.dateReponse).toLocaleDateString("fr-FR", {
+        day: "numeric", month: "long", year: "numeric"
+      }) : null,
+      estRepondue: r.estRepondue === 1,
+      produit: {
+        id: r.idProduit,
+        nom: r.nomProduit || "Produit supprimé"
+      },
+      client: {
+        nom: (r.prenomClient + " " + r.nomClient).trim() || "Anonyme"
+      }
+    }));
+
+    res.json({ success: true, questions });
+  } catch (err) {
+    console.log("Admin questions error:", err);
+    res.json({ success: false, questions: [] });
+  }
+});
+
+// 2. Répondre à une question
+app.put("/api/admin/questions/:id/reponse", async (req, res) => {
+  const { reponse } = req.body;
+  if (!reponse || reponse.trim() === "")
+    return res.json({ success: false, message: "Réponse vide" });
+  try {
+    await query(
+      `UPDATE question 
+       SET reponse = ?, dateReponse = NOW(), estRepondue = 1
+       WHERE idQuestion = ?`,
+      [reponse.trim(), req.params.id]
+    );
+    res.json({ success: true, message: "Réponse enregistrée" });
+  } catch (err) {
+    console.log("Answer question error:", err);
+    res.json({ success: false, message: "Erreur réponse" });
+  }
+});
+
+// 3. Supprimer une question
+app.delete("/api/admin/questions/:id", async (req, res) => {
+  try {
+    await query("DELETE FROM question WHERE idQuestion = ?", [req.params.id]);
+    res.json({ success: true, message: "Question supprimée" });
+  } catch (err) {
+    console.log("Delete question error:", err);
+    res.json({ success: false, message: "Erreur suppression" });
+  }
+});
+
+/* =========================
+   STATISTIQUES DE VENTE (Admin)
+========================= */
+app.get("/api/admin/stats", async (req, res) => {
+  try {
+    // Chiffre d'affaires total et nombre de commandes
+    const [totals] = await query(`
+      SELECT 
+        COUNT(*) AS nbCommandes,
+        COALESCE(SUM(montantTotal), 0) AS caTotal,
+        COALESCE(AVG(montantTotal), 0) AS caMoyen
+      FROM commande
+    `);
+
+    // Commandes par statut
+    const statutRows = await query(`
+      SELECT statut, COUNT(*) AS nb
+      FROM commande
+      GROUP BY statut
+    `);
+
+    // CA par mois (12 derniers mois)
+    const monthRows = await query(`
+      SELECT 
+        DATE_FORMAT(dateCommande, '%Y-%m') AS mois,
+        COUNT(*) AS nb,
+        COALESCE(SUM(montantTotal), 0) AS ca
+      FROM commande
+      WHERE dateCommande >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+      GROUP BY mois
+      ORDER BY mois ASC
+    `);
+
+    // Top 5 produits les plus vendus
+    const topProducts = await query(`
+      SELECT p.nom, SUM(lc.quantite) AS qteVendue, SUM(lc.quantite * lc.prixUnitaire) AS caGenere
+      FROM lignecommande lc
+      JOIN produit p ON p.idProduit = lc.idProduit
+      GROUP BY lc.idProduit
+      ORDER BY qteVendue DESC
+      LIMIT 5
+    `);
+
+    // Nombre de clients actifs (ayant commandé)
+    const [clientsActifs] = await query(`
+      SELECT COUNT(DISTINCT idClient) AS nb FROM commande
+    `);
+
+    // Nouveaux clients ce mois
+    const [newClients] = await query(`
+      SELECT COUNT(*) AS nb FROM utilisateur
+      WHERE typeUtilisateur = 'client'
+        AND dateInscription >= DATE_FORMAT(NOW(), '%Y-%m-01')
+    `);
+
+    // Total avis en attente (masqués)
+    const [pendingReviews] = await query(`
+      SELECT COUNT(*) AS nb FROM avis WHERE estVisible = 0
+    `);
+
+    res.json({
+      success: true,
+      stats: {
+        nbCommandes: totals.nbCommandes,
+        caTotal: Number(totals.caTotal),
+        caMoyen: Math.round(Number(totals.caMoyen || totals.caTotal / Math.max(totals.nbCommandes, 1))),
+        parStatut: statutRows,
+        parMois: monthRows,
+        topProduits: topProducts,
+        clientsActifs: clientsActifs.nb,
+        nouveauxClients: newClients.nb,
+        avisEnAttente: pendingReviews.nb
+      }
+    });
+  } catch (err) {
+    console.log("Admin stats error:", err);
+    res.status(500).json({ success: false, message: "Erreur statistiques" });
+  }
+});
+
+/* =========================
+   GESTION DES CATÉGORIES (Admin)
+========================= */
+
+// Lister toutes les catégories
+app.get("/api/admin/categories", async (req, res) => {
+  try {
+    const rows = await query(`
+      SELECT c.idCategorie, c.nom, c.description, c.icone,
+             COUNT(p.idProduit) AS nbProduits
+      FROM categorie c
+      LEFT JOIN produit p ON p.idCategorie = c.idCategorie
+      GROUP BY c.idCategorie
+      ORDER BY c.nom
+    `);
+    res.json({ success: true, categories: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Erreur chargement catégories" });
+  }
+});
+
+// Ajouter une catégorie
+app.post("/api/admin/categories", async (req, res) => {
+  const { nom, description, icone } = req.body;
+  if (!nom || nom.trim() === "")
+    return res.status(400).json({ success: false, message: "Nom obligatoire" });
+  try {
+    const result = await query(
+      "INSERT INTO categorie (nom, description, icone) VALUES (?, ?, ?)",
+      [nom.trim(), description || "", icone || ""]
+    );
+    res.json({ success: true, idCategorie: result.insertId, message: "Catégorie créée" });
+  } catch (err) {
+    console.log("Add category error:", err);
+    res.status(500).json({ success: false, message: "Erreur création catégorie" });
+  }
+});
+
+// Modifier une catégorie
+app.put("/api/admin/categories/:id", async (req, res) => {
+  const { nom, description, icone } = req.body;
+  if (!nom || nom.trim() === "")
+    return res.status(400).json({ success: false, message: "Nom obligatoire" });
+  try {
+    await query(
+      "UPDATE categorie SET nom=?, description=?, icone=? WHERE idCategorie=?",
+      [nom.trim(), description || "", icone || "", req.params.id]
+    );
+    res.json({ success: true, message: "Catégorie modifiée" });
+  } catch (err) {
+    console.log("Update category error:", err);
+    res.status(500).json({ success: false, message: "Erreur modification catégorie" });
+  }
+});
+
+// Supprimer une catégorie (met les produits à NULL)
+app.delete("/api/admin/categories/:id", async (req, res) => {
+  try {
+    await query(
+      "UPDATE produit SET idCategorie = NULL WHERE idCategorie = ?",
+      [req.params.id]
+    );
+    await query("DELETE FROM categorie WHERE idCategorie = ?", [req.params.id]);
+    res.json({ success: true, message: "Catégorie supprimée" });
+  } catch (err) {
+    console.log("Delete category error:", err);
+    res.status(500).json({ success: false, message: "Erreur suppression catégorie" });
+  }
+});
+
+/* =========================
+   GESTION DES PROMOTIONS (Admin)
+========================= */
+
+// Lister toutes les promos admin (pas les codes fidélité personnels)
+app.get("/api/admin/promotions", async (req, res) => {
+  try {
+    const rows = await query(`
+      SELECT idPromotion, titre, codePromo, typeReduction, tauxReduction,
+             dateDebut, dateFin, estActive,
+             COALESCE(estUtilise, 0) AS estUtilise,
+             idClientOwner
+      FROM Promotion
+      WHERE idClientOwner IS NULL
+      ORDER BY dateDebut DESC
+    `);
+    res.json({ success: true, promotions: rows });
+  } catch (err) {
+    console.log("Admin promotions error:", err);
+    res.status(500).json({ success: false, message: "Erreur chargement promotions" });
+  }
+});
+
+// Créer une promo admin
+app.post("/api/admin/promotions", async (req, res) => {
+  const { titre, codePromo, typeReduction, tauxReduction, dateDebut, dateFin } = req.body;
+  if (!titre || !codePromo || !typeReduction || tauxReduction == null || !dateDebut || !dateFin)
+    return res.status(400).json({ success: false, message: "Tous les champs sont obligatoires" });
+  try {
+    // Vérifier unicité du code
+    const existing = await query(
+      "SELECT idPromotion FROM Promotion WHERE codePromo = UPPER(?)", [codePromo]
+    );
+    if (existing.length)
+      return res.status(409).json({ success: false, message: "Ce code promo existe déjà" });
+
+    const result = await query(
+      `INSERT INTO Promotion (titre, codePromo, typeReduction, tauxReduction, dateDebut, dateFin, estActive)
+       VALUES (?, UPPER(?), ?, ?, ?, ?, 1)`,
+      [titre, codePromo, typeReduction, parseFloat(tauxReduction), dateDebut, dateFin]
+    );
+    res.json({ success: true, idPromotion: result.insertId, message: "Promotion créée" });
+  } catch (err) {
+    console.log("Create promotion error:", err);
+    res.status(500).json({ success: false, message: "Erreur création promotion" });
+  }
+});
+
+// Activer / désactiver une promo
+app.put("/api/admin/promotions/:id/toggle", async (req, res) => {
+  try {
+    await query(
+      "UPDATE Promotion SET estActive = NOT estActive WHERE idPromotion = ?",
+      [req.params.id]
+    );
+    res.json({ success: true, message: "Statut promotion modifié" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Erreur toggle promotion" });
+  }
+});
+
+// Supprimer une promo admin
+app.delete("/api/admin/promotions/:id", async (req, res) => {
+  try {
+    await query("DELETE FROM Promotion WHERE idPromotion = ? AND idClientOwner IS NULL", [req.params.id]);
+    res.json({ success: true, message: "Promotion supprimée" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Erreur suppression promotion" });
+  }
+});
+
+/* =========================
+   GESTION DES LIVRAISONS (Admin)
+========================= */
+
+// Lister toutes les livraisons avec détail commande
+app.get("/api/admin/livraisons", async (req, res) => {
+  try {
+    const rows = await query(`
+      SELECT 
+        l.idLivraison, l.statut, l.adresse, l.wilaya,
+        l.dateEstimee, l.dateEffective, l.fraisLivraison,
+        c.idCommande, c.montantTotal, c.dateCommande,
+        u.prenom, u.nom, u.email, u.telephone
+      FROM livraison l
+      JOIN commande c ON c.idCommande = l.idCommande
+      JOIN utilisateur u ON u.idUtilisateur = c.idClient
+      ORDER BY c.dateCommande DESC
+    `);
+
+    const livraisons = rows.map(r => ({
+      id: r.idLivraison,
+      statut: r.statut,
+      adresse: r.adresse,
+      wilaya: r.wilaya,
+      dateEstimee: r.dateEstimee,
+      dateEffective: r.dateEffective,
+      frais: Number(r.fraisLivraison) || 0,
+      commande: {
+        id: "DS-" + r.idCommande,
+        total: Number(r.montantTotal),
+        date: new Date(r.dateCommande).toLocaleDateString("fr-FR")
+      },
+      client: {
+        nom: (r.prenom + " " + r.nom).trim(),
+        email: r.email,
+        tel: r.telephone
+      }
+    }));
+
+    res.json({ success: true, livraisons });
+  } catch (err) {
+    console.log("Admin livraisons error:", err);
+    res.status(500).json({ success: false, message: "Erreur chargement livraisons" });
+  }
+});
+
+// Créer une livraison pour une commande
+app.post("/api/admin/livraisons", async (req, res) => {
+  const { idCommande, adresse, wilaya, dateEstimee, fraisLivraison } = req.body;
+  if (!idCommande)
+    return res.status(400).json({ success: false, message: "idCommande obligatoire" });
+  try {
+    // Vérifier qu'il n'y a pas déjà une livraison pour cette commande
+    const existing = await query(
+      "SELECT idLivraison FROM livraison WHERE idCommande = ?", [idCommande]
+    );
+    if (existing.length)
+      return res.status(409).json({ success: false, message: "Livraison déjà créée pour cette commande" });
+
+    const result = await query(
+      `INSERT INTO livraison (statut, adresse, wilaya, dateEstimee, fraisLivraison, idCommande)
+       VALUES ('En préparation', ?, ?, ?, ?, ?)`,
+      [adresse || "", wilaya || "", dateEstimee || null, parseFloat(fraisLivraison) || 0, idCommande]
+    );
+    res.json({ success: true, idLivraison: result.insertId, message: "Livraison créée" });
+  } catch (err) {
+    console.log("Create livraison error:", err);
+    res.status(500).json({ success: false, message: "Erreur création livraison" });
+  }
+});
+
+// Mettre à jour le statut d'une livraison
+app.put("/api/admin/livraisons/:id/statut", async (req, res) => {
+  const { statut, dateEffective } = req.body;
+  const STATUTS_VALIDES = ["En préparation", "Expédié", "En transit", "Livré", "Échec livraison"];
+  if (!statut || !STATUTS_VALIDES.includes(statut))
+    return res.status(400).json({ success: false, message: "Statut invalide" });
+  try {
+    await query(
+      `UPDATE livraison SET statut=?, dateEffective=? WHERE idLivraison=?`,
+      [statut, dateEffective || null, req.params.id]
+    );
+    // Synchroniser le statut de la commande liée
+    if (statut === "Livré") {
+      await query(
+        `UPDATE commande c
+         JOIN livraison l ON l.idCommande = c.idCommande
+         SET c.statut = 'Livré'
+         WHERE l.idLivraison = ?`,
+        [req.params.id]
+      );
+    }
+    res.json({ success: true, message: "Statut mis à jour" });
+  } catch (err) {
+    console.log("Update livraison error:", err);
+    res.status(500).json({ success: false, message: "Erreur mise à jour statut" });
+  }
+});
+
+// Ajouter une étape de suivi
+app.post("/api/admin/livraisons/:id/suivi", async (req, res) => {
+  const { statut, localisation, description } = req.body;
+  if (!statut)
+    return res.status(400).json({ success: false, message: "Statut obligatoire" });
+  try {
+    await query(
+      `INSERT INTO suivilivraison (statut, localisation, description, dateEtape, idLivraison)
+       VALUES (?, ?, ?, NOW(), ?)`,
+      [statut, localisation || "", description || "", req.params.id]
+    );
+    // Mettre à jour aussi le statut principal de la livraison
+    await query(
+      "UPDATE livraison SET statut=? WHERE idLivraison=?",
+      [statut, req.params.id]
+    );
+    res.json({ success: true, message: "Étape de suivi ajoutée" });
+  } catch (err) {
+    console.log("Add suivi error:", err);
+    res.status(500).json({ success: false, message: "Erreur ajout suivi" });
+  }
+});
+
+// Récupérer le suivi complet d'une livraison
+app.get("/api/admin/livraisons/:id/suivi", async (req, res) => {
+  try {
+    const rows = await query(
+      `SELECT idSuivi, statut, localisation, description, dateEtape
+       FROM suivilivraison
+       WHERE idLivraison = ?
+       ORDER BY dateEtape ASC`,
+      [req.params.id]
+    );
+    res.json({ success: true, suivi: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Erreur chargement suivi" });
+  }
+});
+
+/* =========================
+   START SERVER (unique)
 ========================= */
 app.listen(3000, () => {
   console.log("🚀 Serveur lancé sur http://localhost:3000");
