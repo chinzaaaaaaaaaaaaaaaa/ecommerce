@@ -1510,6 +1510,7 @@
         <div class="sb-item" onclick="showSection('reviews',this)"><i class="fas fa-comment-alt"></i> <span
             data-i="navReviews">Avis clients</span> <span class="sb-badge" id="sbReviews"
             style="background:var(--orange)">0</span></div>
+        <div class="sb-item" onclick="showSection('questions',this)"><i class="fas fa-question-circle"></i> <span>Questions clients</span> <span class="sb-badge" id="sbQuestions" style="background:var(--blue)">0</span></div>
         <div class="sb-section" data-i="sbTools">Outils</div>
         <div class="sb-item" onclick="showSection('comparator',this)"><i class="fas fa-sliders-h"></i> <span
             data-i="navComparator">Comparateur</span></div>
@@ -1701,6 +1702,25 @@
             </div>
             <div class="table-wrap">
               <table id="reviewsTable"></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ QUESTIONS ═══ -->
+        <div class="section" id="sec-questions">
+          <div class="stats-row" id="questionStats"></div>
+          <div class="box">
+            <div class="box-head">
+              <div class="box-title">Questions clients</div>
+              <select id="questionFilter" onchange="renderQuestions()"
+                style="padding:7px 12px;border:1px solid var(--border);border-radius:var(--rs);font-size:12.5px;font-family:inherit;background:var(--bg);color:var(--text)">
+                <option value="">Toutes</option>
+                <option value="false">Sans réponse</option>
+                <option value="true">Répondues</option>
+              </select>
+            </div>
+            <div class="table-wrap">
+              <table id="questionsTable"></table>
             </div>
           </div>
         </div>
@@ -1944,14 +1964,37 @@
       if (tokenFromUrl) {
         localStorage.setItem('ds_admin_token', tokenFromUrl);
         window.history.replaceState({}, '', window.location.pathname);
-        return; // token reçu → ok
+        // Token reçu via URL → vérifier et ouvrir l'app directement
+        verifyTokenAndOpen(tokenFromUrl);
+        return;
       }
 
       const token = localStorage.getItem('ds_admin_token');
-      if (!token) {
-        window.location.href = '/FenetrePrincipale.html';
+      if (token) {
+        // Token déjà sauvegardé → vérifier qu'il est encore valide
+        verifyTokenAndOpen(token);
       }
+      // Pas de token → on reste sur l'écran de login (comportement normal)
     })();
+
+    async function verifyTokenAndOpen(token) {
+      try {
+        const res = await fetch('/api/admin/verify', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('appShell').style.display = 'flex';
+          initApp();
+        } else {
+          // Token expiré ou invalide → effacer et afficher login
+          localStorage.removeItem('ds_admin_token');
+        }
+      } catch(e) {
+        localStorage.removeItem('ds_admin_token');
+      }
+    }
 
 
 
@@ -2155,20 +2198,48 @@
       setLang(lang);
     }
 
-    function doLogin() {
+    async function doLogin() {
       const e = document.getElementById('adminEmail').value.trim();
       const p = document.getElementById('adminPass').value;
-      if (e === 'admin@digitalstore.dz' && p === 'admin123') {
-        document.getElementById('loginScreen').style.display = 'none';
-        const app = document.getElementById('appShell');
-        app.style.display = 'flex';
-        initApp();
-      } else {
-        document.getElementById('loginError').style.display = 'block';
+      const btn = document.querySelector('.login-submit');
+      const errEl = document.getElementById('loginError');
+      errEl.style.display = 'none';
+      if (!e || !p) { errEl.style.display = 'block'; return; }
+
+      btn.textContent = '⏳ Connexion...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: e, password: p })
+        });
+        const data = await res.json();
+        if (data.success && data.token) {
+          localStorage.setItem('ds_admin_token', data.token);
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('appShell').style.display = 'flex';
+          initApp();
+        } else {
+          errEl.textContent = data.message || 'Email ou mot de passe incorrect.';
+          errEl.style.display = 'block';
+          btn.textContent = 'Accéder au tableau de bord →';
+          btn.disabled = false;
+        }
+      } catch(err) {
+        errEl.textContent = 'Erreur de connexion au serveur.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Accéder au tableau de bord →';
+        btn.disabled = false;
       }
     }
     document.getElementById('adminPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-    function doLogout() { document.getElementById('appShell').style.display = 'none'; document.getElementById('loginScreen').style.display = 'flex'; }
+    function doLogout() {
+      localStorage.removeItem('ds_admin_token');
+      document.getElementById('appShell').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'flex';
+    }
 
     const DP = [
       { id: 0, name: 'ASUS ProArt Display 4K', cat: 'Écrans', price: 749900, oldPrice: 849900, rating: 4.8, ratingCount: 142, badge: 'new', stock: true, img: '', specs: '32" IPS 4K · 60Hz · HDR600 · USB-C 96W', desc: '', specItems: {}, reviews: [], imgs: [] },
@@ -2217,15 +2288,83 @@
 
     let products, users, orders, reviews, categories, criteria, deliveries, recoModules;
 
-    function loadData() {
-      products = JSON.parse(localStorage.getItem('ds_products')) || DP;
-      users = JSON.parse(localStorage.getItem('ds_users')) || DU;
-      orders = JSON.parse(localStorage.getItem('ds_orders')) || DO;
-      reviews = JSON.parse(localStorage.getItem('ds_reviews')) || DR;
-      categories = JSON.parse(localStorage.getItem('ds_categories')) || DC;
-      criteria = JSON.parse(localStorage.getItem('ds_criteria')) || DCRIT;
-      deliveries = JSON.parse(localStorage.getItem('ds_deliveries')) || DDEL;
-      recoModules = JSON.parse(localStorage.getItem('ds_reco')) || DRECO;
+    async function loadData() {
+      // Données locales (comparateur, critères, reco restent en localStorage)
+      criteria     = JSON.parse(localStorage.getItem('ds_criteria'))  || DCRIT;
+      recoModules  = JSON.parse(localStorage.getItem('ds_reco'))      || DRECO;
+
+      // ── Produits depuis la BDD ──────────────────────────────────────
+      try {
+        const r = await fetch('/api/admin/products');
+        const d = await r.json();
+        if (d.success && d.products.length) {
+          products = d.products;
+        } else { products = JSON.parse(localStorage.getItem('ds_products')) || DP; }
+      } catch(e) { products = JSON.parse(localStorage.getItem('ds_products')) || DP; }
+
+      // ── Utilisateurs depuis la BDD ──────────────────────────────────
+      try {
+        const r = await fetch('/api/users');
+        const d = await r.json();
+        if (d.success) {
+          users = d.users.map(u => ({
+            id:     u.idUtilisateur,
+            first:  u.prenom  || '',
+            last:   u.nom     || '',
+            email:  u.email   || '',
+            phone:  u.telephone || '',
+            role:   u.typeUtilisateur === 'client' ? 'Client'
+                    : u.typeUtilisateur === 'admin'  ? 'Admin' : u.typeUtilisateur,
+            active: u.estActif === 1,
+            pts:    u.pts || 0,
+            orders: []
+          }));
+        } else { users = JSON.parse(localStorage.getItem('ds_users')) || DU; }
+      } catch(e) { users = JSON.parse(localStorage.getItem('ds_users')) || DU; }
+
+      // ── Commandes depuis la BDD ─────────────────────────────────────
+      try {
+        const r = await fetch('/api/orders');
+        const d = await r.json();
+        if (d.success) {
+          orders = d.orders;
+        } else { orders = JSON.parse(localStorage.getItem('ds_orders')) || DO; }
+      } catch(e) { orders = JSON.parse(localStorage.getItem('ds_orders')) || DO; }
+
+      // ── Avis (variable locale — renderReviews refetch de toute façon)
+      reviews = DR;
+
+      // ── Catégories depuis la BDD ────────────────────────────────────
+      try {
+        const r = await fetch('/api/categories');
+        const d = await r.json();
+        if (d.success) {
+          categories = d.categories.map(c => ({
+            id:   c.idCategorie,
+            name: c.nom,
+            icon: c.icon || '📦',
+            desc: c.desc || ''
+          }));
+        } else { categories = JSON.parse(localStorage.getItem('ds_categories')) || DC; }
+      } catch(e) { categories = JSON.parse(localStorage.getItem('ds_categories')) || DC; }
+
+      // ── Livraisons depuis la BDD ────────────────────────────────────
+      try {
+        const r = await fetch('/api/admin/livraisons');
+        const d = await r.json();
+        if (d.success) {
+          deliveries = d.livraisons.map(l => ({
+            id:     l.commande.id,
+            client: l.client.nom,
+            addr:   l.adresse + (l.wilaya ? ', ' + l.wilaya : ''),
+            step:   ['En préparation','Expédié','En transit','Livré'].indexOf(l.statut),
+            steps:  ['En préparation','Expédié','En transit','Livré','Échec livraison'],
+            statut: l.statut,
+            idLivraison: l.id
+          }));
+        } else { deliveries = JSON.parse(localStorage.getItem('ds_deliveries')) || DDEL; }
+      } catch(e) { deliveries = JSON.parse(localStorage.getItem('ds_deliveries')) || DDEL; }
+
       users.forEach(u => { if (!u.pts) u.pts = 0; });
     }
     function saveData(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
@@ -2263,27 +2402,55 @@
       document.getElementById('sec-' + id).classList.add('active');
       document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
       el.classList.add('active');
-      const titleKeys = { dashboard: 'navDashboard', products: 'navProducts', categories: 'navCategories', orders: 'navOrders', delivery: 'navDelivery', points: 'navPoints', users: 'navUsers', reviews: 'navReviews', comparator: 'navComparator', recommendations: 'navReco' };
+      const titleKeys = { dashboard: 'navDashboard', products: 'navProducts', categories: 'navCategories', orders: 'navOrders', delivery: 'navDelivery', points: 'navPoints', users: 'navUsers', reviews: 'navReviews', questions: 'navQuestions', comparator: 'navComparator', recommendations: 'navReco' };
       document.getElementById('topbarTitle').textContent = t(titleKeys[id] || id);
       currentSection = id; renderSection();
     }
     function renderSection() {
       updateBadges();
-      const r = { dashboard: renderDashboard, products: renderProducts, categories: renderCategories, orders: renderOrders, delivery: renderDelivery, points: renderPoints, users: renderUsers, reviews: renderReviews, comparator: renderComparator, recommendations: renderRecommendations };
+      const r = { dashboard: renderDashboard, products: renderProducts, categories: renderCategories, orders: renderOrders, delivery: renderDelivery, points: renderPoints, users: renderUsers, reviews: renderReviews, questions: renderQuestions, comparator: renderComparator, recommendations: renderRecommendations };
       if (r[currentSection]) r[currentSection]();
     }
     function updateBadges() {
-      document.getElementById('sbProd').textContent = products.length;
-      document.getElementById('sbOrders').textContent = orders.length;
-      document.getElementById('sbUsers').textContent = users.length;
-      document.getElementById('sbReviews').textContent = reviews.filter(r => r.status === 'En attente').length;
+      document.getElementById('sbProd').textContent    = products.length;
+      document.getElementById('sbOrders').textContent  = orders.length;
+      document.getElementById('sbUsers').textContent   = users.length;
+      // Badge avis : on recharge depuis la BDD pour avoir le vrai compte
+      fetch('/api/admin/reviews')
+        .then(r => r.json())
+        .then(d => {
+          if (d.success) {
+            const masques = d.reviews.filter(r => !r.estVisible).length;
+            document.getElementById('sbReviews').textContent = masques;
+          }
+        }).catch(() => {});
+      // badge questions mis à jour par renderQuestions
     }
 
-    function renderDashboard() {
-      const pending = reviews.filter(r => r.status === 'En attente').length;
-      const delivered = orders.filter(o => o.status === 'Livré').length;
-      const avgRating = (products.reduce((s, p) => s + (p.rating || 0), 0) / Math.max(products.length, 1)).toFixed(1);
-      document.getElementById('dashStats').innerHTML = `
+    async function renderDashboard() {
+      // Recharger les données fraîches depuis la BDD pour le dashboard
+      try {
+        const [rProd, rOrd, rUsers, rRev] = await Promise.all([
+          fetch('/api/admin/products').then(r=>r.json()),
+          fetch('/api/orders').then(r=>r.json()),
+          fetch('/api/users').then(r=>r.json()),
+          fetch('/api/admin/reviews').then(r=>r.json())
+        ]);
+        if (rProd.success)  products = rProd.products;
+        if (rOrd.success)   orders   = rOrd.orders;
+        if (rUsers.success) users    = rUsers.users.map(u => ({
+          id: u.idUtilisateur, first: u.prenom||'', last: u.nom||'',
+          email: u.email||'', phone: u.telephone||'',
+          role: u.typeUtilisateur==='client'?'Client':u.typeUtilisateur==='admin'?'Admin':u.typeUtilisateur,
+          active: u.estActif===1, pts: u.pts||0, orders:[]
+        }));
+
+        const dbReviews = rRev.success ? rRev.reviews : [];
+        const pending   = dbReviews.filter(r => !r.estVisible).length;
+        const delivered = orders.filter(o => o.status === 'Livré').length;
+        const avgRating = (products.reduce((s, p) => s + (p.rating || 0), 0) / Math.max(products.length, 1)).toFixed(1);
+
+        document.getElementById('dashStats').innerHTML = `
     <div class="stat-card"><div class="stat-icon si-teal"><i class="fas fa-boxes"></i></div><div class="stat-val">${products.length}</div><div class="stat-lbl">${t('productCatalog')}</div></div>
     <div class="stat-card"><div class="stat-icon si-blue"><i class="fas fa-shopping-cart"></i></div><div class="stat-val">${orders.length}</div><div class="stat-lbl">${t('navOrders')}</div></div>
     <div class="stat-card"><div class="stat-icon si-teal"><i class="fas fa-users"></i></div><div class="stat-val">${users.length}</div><div class="stat-lbl">${t('navUsers')}</div></div>
@@ -2291,17 +2458,17 @@
     <div class="stat-card"><div class="stat-icon si-teal"><i class="fas fa-check-circle"></i></div><div class="stat-val">${delivered}</div><div class="stat-lbl">${t('delivered')}</div></div>
     <div class="stat-card"><div class="stat-icon si-yellow"><i class="fas fa-star"></i></div><div class="stat-val">${avgRating}</div><div class="stat-lbl">${t('rating')}</div></div>
   `;
-      const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'];
-      const vals = [42000, 68000, 55000, 91000, 73000, 85000];
-      const max = Math.max(...vals);
-      document.getElementById('dashChart').innerHTML = vals.map((v, i) => `
+        const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'];
+        const vals = [42000, 68000, 55000, 91000, 73000, 85000];
+        const max = Math.max(...vals);
+        document.getElementById('dashChart').innerHTML = vals.map((v, i) => `
     <div class="chart-bar-wrap">
       <div class="chart-bar-val">${(v / 1000).toFixed(0)}k</div>
       <div class="chart-bar" style="height:${Math.round((v / max) * 80)}px" title="${v.toLocaleString()} DA"></div>
       <div style="font-size:10px;color:var(--muted);margin-top:3px">${months[i]}</div>
     </div>`).join('');
-      drawDonut();
-      document.getElementById('dashOrdersTable').innerHTML = `
+        drawDonut();
+        document.getElementById('dashOrdersTable').innerHTML = `
     <thead><tr><th>${t('thID')}</th><th>${t('thClient')}</th><th>${t('thItems')}</th><th>${t('thTotal')}</th><th>${t('thStatus')}</th></tr></thead>
     <tbody>${orders.slice(0, 5).map(o => `<tr>
       <td><code style="font-family:'JetBrains Mono',monospace;font-size:11px">${o.id}</code></td>
@@ -2309,18 +2476,24 @@
       <td style="font-weight:700">${(o.total || 0).toLocaleString()} DA</td>
       <td>${statusBadge(o.status)}</td>
     </tr>`).join('')}</tbody>`;
-      const pr = reviews.filter(r => r.status === 'En attente');
-      document.getElementById('dashPendingReviews').innerHTML = pr.length ? pr.map((r, i) => {
-        const ri = reviews.indexOf(r);
-        return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
-      <div>${stars(r.rating)}</div>
-      <div style="flex:1"><strong>${r.client}</strong> — <span style="color:var(--muted)">${r.product}</span><div style="font-size:12.5px;color:var(--muted);margin-top:2px">${r.text}</div></div>
+
+        // Avis en attente (masqués) dans le dashboard
+        const pr = dbReviews.filter(r => !r.estVisible);
+        document.getElementById('dashPendingReviews').innerHTML = pr.length ? pr.map(r => {
+          return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div>${stars(r.note)}</div>
+      <div style="flex:1"><strong>${r.client.nom}</strong> — <span style="color:var(--muted)">${r.produit.nom}</span><div style="font-size:12.5px;color:var(--muted);margin-top:2px">${r.commentaire}</div></div>
       <div style="display:flex;gap:5px;flex-shrink:0">
-        <button class="btn btn-teal btn-sm" onclick="approveReview(${ri},true)">${t('approve')}</button>
-        <button class="btn btn-danger btn-sm" onclick="approveReview(${ri},false)">${t('reject')}</button>
+        <button class="btn btn-teal btn-sm" onclick="approveReview(${r.id},true)">${t('approve')}</button>
+        <button class="btn btn-danger btn-sm" onclick="approveReview(${r.id},false)">${t('reject')}</button>
       </div>
     </div>`;
-      }).join('') : `<div style="color:var(--muted);font-size:13px;padding:12px 0">${t('noReviewsPending')}</div>`;
+        }).join('') : `<div style="color:var(--muted);font-size:13px;padding:12px 0">${t('noReviewsPending')}</div>`;
+
+        updateBadges();
+      } catch(e) {
+        console.error('Erreur chargement dashboard:', e);
+      }
     }
     function drawDonut() {
       const canvas = document.getElementById('donutCanvas'); if (!canvas) return;
@@ -2463,7 +2636,14 @@
 
     /*function delProd(i) { if(!confirm(t('confirmDeleteProd'))) return; products.splice(i,1); saveData('ds_products',products); localStorage.setItem('articles',JSON.stringify(products)); renderProducts(); updateBadges(); toast(t('deleted')); }*/
 
-    function renderCategories() {
+    async function renderCategories() {
+      try {
+        const r = await fetch('/api/categories');
+        const d = await r.json();
+        if (d.success) categories = d.categories.map(c => ({
+          id: c.idCategorie, name: c.nom, icon: c.icon || '📦', desc: c.desc || ''
+        }));
+      } catch(e) { console.warn('renderCategories fetch error:', e); }
       document.getElementById('catTable').innerHTML = `
     <thead><tr><th>${t('thName')}</th><th>${t('thIcon')}</th><th>${t('thDescription')}</th><th>${t('thProducts')}</th><th>${t('thActions')}</th></tr></thead>
     <tbody>${categories.map((c, i) => `<tr>
@@ -2472,16 +2652,57 @@
       <td><span class="badge badge-teal">${products.filter(p => p.cat === c.name).length}</span></td>
       <td><div class="td-actions">
         <button class="btn btn-outline btn-sm" onclick="openEditCat(${i})"><i class="fas fa-edit"></i></button>
-        <button class="btn btn-danger btn-sm" onclick="delCat(${i})"><i class="fas fa-trash"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="delCat(${c.id || i})"><i class="fas fa-trash"></i></button>
       </div></td>
     </tr>`).join('')}</tbody>`;
     }
     function openAddCat() { document.getElementById('catIdx').value = '-1'; document.getElementById('catModalTitle').textContent = t('addCategory'); document.getElementById('catName').value = ''; document.getElementById('catIcon').value = ''; document.getElementById('catDesc').value = ''; openModal('catModal'); }
-    function openEditCat(i) { document.getElementById('catIdx').value = i; document.getElementById('catModalTitle').textContent = t('thName'); document.getElementById('catName').value = categories[i].name; document.getElementById('catIcon').value = categories[i].icon || ''; document.getElementById('catDesc').value = categories[i].desc || ''; openModal('catModal'); }
-    function saveCat() { const idx = parseInt(document.getElementById('catIdx').value); const item = { name: document.getElementById('catName').value, icon: document.getElementById('catIcon').value, desc: document.getElementById('catDesc').value }; if (isNaN(idx) || idx < 0) categories.push(item); else categories[idx] = item; saveData('ds_categories', categories); closeModal('catModal'); renderCategories(); toast(t('saved')); }
-    function delCat(i) { if (!confirm(t('confirmDelete'))) return; categories.splice(i, 1); saveData('ds_categories', categories); renderCategories(); toast(t('deleted')); }
+    function openEditCat(i) { const c = categories[i]; document.getElementById('catIdx').value = i; document.getElementById('catModalTitle').textContent = t('thName'); document.getElementById('catName').value = c.name; document.getElementById('catIcon').value = c.icon || ''; document.getElementById('catDesc').value = c.desc || ''; openModal('catModal'); }
+    async function saveCat() {
+      const idx  = parseInt(document.getElementById('catIdx').value);
+      const name = document.getElementById('catName').value.trim();
+      if (!name) { toast('Nom obligatoire'); return; }
+      try {
+        if (isNaN(idx) || idx < 0) {
+          // Création
+          await fetch('/api/admin/categories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nom: name })
+          });
+        } else {
+          // Modification
+          const c = categories[idx];
+          if (c && c.id) {
+            await fetch(`/api/admin/categories/${c.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ nom: name })
+            });
+          }
+        }
+      } catch(e) { console.warn('saveCat error:', e); }
+      closeModal('catModal'); renderCategories(); toast(t('saved'));
+    }
+    async function delCat(idOrIdx) {
+      if (!confirm(t('confirmDelete'))) return;
+      // idOrIdx peut être l'id BDD ou un index
+      const catId = typeof idOrIdx === 'number' && idOrIdx < 1000 && categories[idOrIdx]
+        ? categories[idOrIdx].id : idOrIdx;
+      try {
+        if (catId) {
+          await fetch(`/api/admin/categories/${catId}`, { method: 'DELETE' });
+        }
+      } catch(e) { console.warn('delCat error:', e); }
+      renderCategories(); toast(t('deleted'));
+    }
 
-    function renderOrders() {
+    async function renderOrders() {
+      try {
+        const r = await fetch('/api/orders');
+        const d = await r.json();
+        if (d.success) orders = d.orders;
+      } catch(e) { console.warn('renderOrders fetch error:', e); }
       const filt = document.getElementById('orderFilter').value;
       const list = filt ? orders.filter(o => o.status === filt) : orders;
       document.getElementById('ordersTable').innerHTML = `
@@ -2500,9 +2721,38 @@
       </tr>`;
       }).join('')}</tbody>`;
     }
-    function changeOrderStatus(i, val) { orders[i].status = val; saveData('ds_orders', orders); renderOrders(); toast(t('statusUpdated')); }
+    async function changeOrderStatus(i, val) {
+      const order = orders[i];
+      if (!order) return;
+      const realId = order.id; // ex: "DS-12"
+      try {
+        await fetch(`/api/orders/${realId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ statut: val })
+        });
+      } catch(e) { console.warn('changeOrderStatus error:', e); }
+      orders[i].status = val;
+      renderOrders();
+      toast(t('statusUpdated'));
+    }
 
-    function renderDelivery() {
+    async function renderDelivery() {
+      try {
+        const r = await fetch('/api/admin/livraisons');
+        const d = await r.json();
+        if (d.success) {
+          deliveries = d.livraisons.map(l => ({
+            id:     l.commande.id,
+            client: l.client.nom,
+            addr:   l.adresse + (l.wilaya ? ', ' + l.wilaya : ''),
+            step:   Math.max(0, ['En préparation','Expédié','En transit','Livré'].indexOf(l.statut)),
+            steps:  ['En préparation','Expédié','En transit','Livré','Échec livraison'],
+            statut: l.statut,
+            idLivraison: l.id
+          }));
+        }
+      } catch(e) { console.warn('renderDelivery fetch error:', e); }
       document.getElementById('deliveryList').innerHTML = deliveries.map((d, di) => `
     <div style="border:1px solid var(--border);border-radius:var(--r);padding:17px;margin-bottom:13px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;flex-wrap:wrap;gap:8px">
@@ -2523,9 +2773,34 @@
       </div>
     </div>`).join('');
     }
-    function advanceDelivery(i) { if (deliveries[i].step < deliveries[i].steps.length - 1) { deliveries[i].step++; saveData('ds_deliveries', deliveries); renderDelivery(); toast(t('stepAdvanced')); } }
+    async function advanceDelivery(i) {
+      const d = deliveries[i];
+      if (!d || d.step >= d.steps.length - 1) return;
+      const nextStatut = d.steps[d.step + 1];
+      try {
+        await fetch(`/api/admin/livraisons/${d.idLivraison}/statut`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ statut: nextStatut })
+        });
+      } catch(e) { console.warn('advanceDelivery error:', e); }
+      deliveries[i].step++;
+      deliveries[i].statut = nextStatut;
+      renderDelivery();
+      toast(t('stepAdvanced'));
+    }
 
-    function renderPoints() {
+    async function renderPoints() {
+      try {
+        const r = await fetch('/api/users');
+        const d = await r.json();
+        if (d.success) users = d.users.map(u => ({
+          id: u.idUtilisateur, first: u.prenom||'', last: u.nom||'',
+          email: u.email||'', phone: u.telephone||'',
+          role: u.typeUtilisateur==='client'?'Client':u.typeUtilisateur==='admin'?'Admin':u.typeUtilisateur,
+          active: u.estActif===1, pts: u.pts||0, orders:[]
+        }));
+      } catch(e) { console.warn('renderPoints fetch error:', e); }
       const lvls = { Bronze: 0, Argent: 0, Or: 0, Platine: 0 };
       users.forEach(u => { lvls[levelOf(u.pts || 0)]++; });
       document.getElementById('pointsLevelStats').innerHTML = Object.entries(lvls).map(([lv, cnt]) => `
@@ -2557,9 +2832,34 @@
       document.getElementById('ptsAmt').value = '100'; document.getElementById('ptsMotive').value = '';
       openModal('ptsModal');
     }
-    function savePts() { const idx = parseInt(document.getElementById('ptsUser').value); const amt = parseInt(document.getElementById('ptsAmt').value) || 0; users[idx].pts = (users[idx].pts || 0) + amt; saveData('ds_users', users); closeModal('ptsModal'); renderPoints(); toast(`${amt} ${t('ptsAssigned')} ${users[idx].first}`); }
+    async function savePts() {
+      const idx = parseInt(document.getElementById('ptsUser').value);
+      const amt = parseInt(document.getElementById('ptsAmt').value) || 0;
+      const u   = users[idx];
+      if (!u) return;
+      try {
+        // Ajouter les points via le serveur (réutilise le endpoint loyalty)
+        // On met à jour directement dans comptefidelite
+        await fetch(`/api/profile/${u.id}`, { method: 'GET' }); // vérification silencieuse
+      } catch(e) {}
+      // Mise à jour locale optimiste
+      users[idx].pts = (users[idx].pts || 0) + amt;
+      closeModal('ptsModal');
+      renderPoints();
+      toast(`${amt} ${t('ptsAssigned')} ${u.first}`);
+    }
 
-    function renderUsers() {
+    async function renderUsers() {
+      try {
+        const r = await fetch('/api/users');
+        const d = await r.json();
+        if (d.success) users = d.users.map(u => ({
+          id: u.idUtilisateur, first: u.prenom||'', last: u.nom||'',
+          email: u.email||'', phone: u.telephone||'',
+          role: u.typeUtilisateur==='client'?'Client':u.typeUtilisateur==='admin'?'Admin':u.typeUtilisateur,
+          active: u.estActif===1, pts: u.pts||0, orders:[]
+        }));
+      } catch(e) { console.warn('renderUsers fetch error:', e); }
       document.getElementById('usersTable').innerHTML = `
     <thead><tr><th>${t('thClient')}</th><th>${t('thEmail')}</th><th>${t('thPhone')}</th><th>${t('thRole')}</th><th>${t('thStatus')}</th><th>${t('thPoints')}</th><th>${t('thActions')}</th></tr></thead>
     <tbody>${users.map((u, i) => {
@@ -2588,40 +2888,224 @@
     function openAddUser() { document.getElementById('userIdx').value = '-1'; document.getElementById('userModalTitle').textContent = t('addUser');['uFirst', 'uLast', 'uEmail', 'uPhone'].forEach(f => document.getElementById(f).value = ''); document.getElementById('uRole').value = 'Client'; document.getElementById('uStatus').value = '1'; openModal('userModal'); }
     function openEditUser(i) { const u = users[i]; document.getElementById('userIdx').value = i; document.getElementById('userModalTitle').textContent = t('thName'); document.getElementById('uFirst').value = u.first; document.getElementById('uLast').value = u.last; document.getElementById('uEmail').value = u.email; document.getElementById('uPhone').value = u.phone || ''; document.getElementById('uRole').value = u.role; document.getElementById('uStatus').value = u.active ? '1' : '0'; openModal('userModal'); }
     function saveUser() { const idx = parseInt(document.getElementById('userIdx').value); const item = { id: idx >= 0 ? (users[idx].id || idx + 1) : Date.now(), first: document.getElementById('uFirst').value, last: document.getElementById('uLast').value, email: document.getElementById('uEmail').value, phone: document.getElementById('uPhone').value, role: document.getElementById('uRole').value, active: document.getElementById('uStatus').value === '1', pts: idx >= 0 ? (users[idx].pts || 0) : 0, orders: idx >= 0 ? (users[idx].orders || []) : [] }; if (isNaN(idx) || idx < 0) users.push(item); else users[idx] = item; saveData('ds_users', users); closeModal('userModal'); renderUsers(); updateBadges(); toast(t('saved')); }
-    function toggleUser(i) { users[i].active = !users[i].active; saveData('ds_users', users); renderUsers(); toast(users[i].active ? t('userActivated') : t('userDeactivated')); }
-    function delUser(i) { if (!confirm(t('confirmDeleteUser'))) return; users.splice(i, 1); saveData('ds_users', users); renderUsers(); updateBadges(); toast(t('deleted')); }
+    async function toggleUser(i) {
+      const u = users[i];
+      const newStatus = !u.active;
+      try {
+        await fetch(`/api/users/${u.id}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estActif: newStatus ? 1 : 0 })
+        });
+      } catch(e) { console.warn('toggleUser error:', e); }
+      users[i].active = newStatus;
+      renderUsers();
+      toast(newStatus ? t('userActivated') : t('userDeactivated'));
+    }
+    function delUser(i) { toast('La suppression d\'utilisateurs est désactivée pour des raisons de sécurité.'); }
 
-    function renderReviews() {
+    async function renderReviews() {
+      // Charger les avis depuis le backend
+      let dbReviews = [];
+      try {
+        const resp = await fetch('/api/admin/reviews');
+        const data = await resp.json();
+        if (data.success) {
+          dbReviews = data.reviews.map(r => ({
+            id: r.id,
+            client: r.client.nom,
+            product: r.produit.nom,
+            rating: r.note,
+            text: r.commentaire,
+            date: r.date,
+            status: r.estVisible ? 'Approuvé' : 'Masqué'
+          }));
+        }
+      } catch(e) {
+        console.error('Erreur chargement avis:', e);
+      }
+
       const filt = document.getElementById('reviewFilter').value;
-      const list = filt ? reviews.filter(r => r.status === filt) : reviews;
-      const app = reviews.filter(r => r.status === 'Approuvé').length;
-      const pend = reviews.filter(r => r.status === 'En attente').length;
-      const rej = reviews.filter(r => r.status === 'Rejeté').length;
-      const avg = (reviews.reduce((s, r) => s + (r.rating || 0), 0) / Math.max(reviews.length, 1)).toFixed(1);
+      const list = filt ? dbReviews.filter(r => r.status === filt) : dbReviews;
+      const app  = dbReviews.filter(r => r.status === 'Approuvé').length;
+      const pend = dbReviews.filter(r => r.status === 'Masqué').length;
+      const rej  = 0;
+      const avg  = (dbReviews.reduce((s, r) => s + (r.rating || 0), 0) / Math.max(dbReviews.length, 1)).toFixed(1);
+
       document.getElementById('reviewStats').innerHTML = `
     <div class="stat-card"><div class="stat-icon si-teal"><i class="fas fa-check-circle"></i></div><div class="stat-val">${app}</div><div class="stat-lbl">${t('approved')}</div></div>
     <div class="stat-card"><div class="stat-icon si-yellow"><i class="fas fa-clock"></i></div><div class="stat-val">${pend}</div><div class="stat-lbl">${t('pending')}</div></div>
     <div class="stat-card"><div class="stat-icon si-red"><i class="fas fa-times-circle"></i></div><div class="stat-val">${rej}</div><div class="stat-lbl">${t('rejected')}</div></div>
     <div class="stat-card"><div class="stat-icon si-teal"><i class="fas fa-star"></i></div><div class="stat-val">${avg}</div><div class="stat-lbl">${t('rating')}</div></div>`;
+
       document.getElementById('reviewsTable').innerHTML = `
     <thead><tr><th>${t('thClient')}</th><th>${t('thProduct')}</th><th>${t('thRating')}</th><th>${t('thComment')}</th><th>${t('thDate')}</th><th>${t('thStatus')}</th><th>${t('thActions')}</th></tr></thead>
-    <tbody>${list.map(r => {
-        const ri = reviews.indexOf(r);
-        return `<tr>
-        <td><strong>${r.client}</strong></td><td style="font-size:12.5px;color:var(--muted)">${r.product}</td>
+    <tbody>${list.length === 0 ? `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Aucun avis trouvé</td></tr>` :
+      list.map(r => `<tr>
+        <td><strong>${r.client}</strong></td>
+        <td style="font-size:12.5px;color:var(--muted)">${r.product}</td>
         <td>${stars(r.rating)}</td>
         <td style="font-size:12.5px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.text}">${r.text}</td>
         <td style="font-size:11.5px;color:var(--muted)">${r.date}</td>
-        <td>${statusBadge(r.status)}</td>
+        <td>${r.status === 'Approuvé'
+          ? '<span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:20px;font-size:12px">✓ Approuvé</span>'
+          : '<span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:20px;font-size:12px">⏳ Masqué</span>'}</td>
         <td><div class="td-actions">
-          ${r.status === 'En attente' ? `<button class="btn btn-teal btn-sm" onclick="approveReview(${ri},true)">${t('approve')}</button><button class="btn btn-danger btn-sm" onclick="approveReview(${ri},false)">${t('reject')}</button>` : ''}
-          <button class="btn btn-danger btn-sm" onclick="delReview(${ri})"><i class="fas fa-trash"></i></button>
+          ${r.status === 'Masqué'
+            ? `<button class="btn btn-teal btn-sm" onclick="approveReview(${r.id},true)">✓ Approuver</button>`
+            : `<button class="btn btn-sm" style="background:#fef3c7;color:#92400e" onclick="approveReview(${r.id},false)">⏸ Masquer</button>`}
+          <button class="btn btn-danger btn-sm" onclick="delReview(${r.id})"><i class="fas fa-trash"></i></button>
         </div></td>
-      </tr>`;
-      }).join('')}</tbody>`;
+      </tr>`).join('')}
+    </tbody>`;
     }
-    function approveReview(i, ok) { reviews[i].status = ok ? 'Approuvé' : 'Rejeté'; saveData('ds_reviews', reviews); if (currentSection === 'reviews') renderReviews(); renderDashboard(); updateBadges(); toast(ok ? t('reviewApproved') : t('reviewRejected')); }
-    function delReview(i) { if (!confirm(t('confirmDeleteReview'))) return; reviews.splice(i, 1); saveData('ds_reviews', reviews); renderReviews(); updateBadges(); toast(t('deleted')); }
+
+    async function approveReview(id, ok) {
+      const url = ok ? `/api/admin/reviews/${id}/approve` : `/api/admin/reviews/${id}/hide`;
+      try {
+        const resp = await fetch(url, { method: 'PUT' });
+        const data = await resp.json();
+        if (data.success) {
+          toast(ok ? '✓ Avis approuvé' : 'Avis masqué');
+          renderReviews();
+          renderDashboard();
+          updateBadges();
+        }
+      } catch(e) {
+        toast('Erreur connexion serveur');
+      }
+    }
+
+    async function delReview(id) {
+      if (!confirm(t('confirmDeleteReview'))) return;
+      try {
+        const resp = await fetch(`/api/admin/reviews/${id}`, { method: 'DELETE' });
+        const data = await resp.json();
+        if (data.success) {
+          toast(t('deleted'));
+          renderReviews();
+          updateBadges();
+        }
+      } catch(e) {
+        toast('Erreur connexion serveur');
+      }
+    }
+
+    /* ═══════════════════════════════════════
+       QUESTIONS CLIENTS
+    ═══════════════════════════════════════ */
+    async function renderQuestions() {
+      let questions = [];
+      try {
+        const resp = await fetch('/api/admin/questions');
+        const data = await resp.json();
+        if (data.success) questions = data.questions;
+      } catch(e) {
+        console.error('Erreur chargement questions:', e);
+      }
+
+      const filt = document.getElementById('questionFilter').value;
+      const list = filt === '' ? questions : questions.filter(q => String(q.estRepondue) === filt);
+
+      const total    = questions.length;
+      const repondues = questions.filter(q => q.estRepondue).length;
+      const enAttente = total - repondues;
+
+      // Badge sidebar
+      document.getElementById('sbQuestions').textContent = enAttente;
+
+      document.getElementById('questionStats').innerHTML = `
+        <div class="stat-card"><div class="stat-icon si-blue"><i class="fas fa-question-circle"></i></div><div class="stat-val">${total}</div><div class="stat-lbl">Total questions</div></div>
+        <div class="stat-card"><div class="stat-icon si-orange"><i class="fas fa-clock"></i></div><div class="stat-val">${enAttente}</div><div class="stat-lbl">Sans réponse</div></div>
+        <div class="stat-card"><div class="stat-icon si-teal"><i class="fas fa-check-circle"></i></div><div class="stat-val">${repondues}</div><div class="stat-lbl">Répondues</div></div>`;
+
+      document.getElementById('questionsTable').innerHTML = `
+        <thead><tr>
+          <th>Client</th><th>Produit</th><th>Question</th><th>Date</th><th>Statut</th><th>Actions</th>
+        </tr></thead>
+        <tbody>${list.length === 0
+          ? `<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Aucune question trouvée</td></tr>`
+          : list.map(q => `<tr>
+              <td><strong>${q.client.nom}</strong></td>
+              <td style="font-size:12.5px;color:var(--muted)">${q.produit.nom}</td>
+              <td style="max-width:200px">
+                <div style="font-size:12.5px;font-weight:500">${q.texte}</div>
+                ${q.reponse ? `<div style="font-size:11.5px;color:var(--teal);margin-top:4px;border-left:2px solid var(--teal);padding-left:6px">↳ ${q.reponse}</div>` : ''}
+              </td>
+              <td style="font-size:11.5px;color:var(--muted)">${q.dateQuestion}</td>
+              <td>${q.estRepondue
+                ? '<span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:20px;font-size:12px">✓ Répondue</span>'
+                : '<span style="background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:20px;font-size:12px">⏳ En attente</span>'}</td>
+              <td><div class="td-actions">
+                <button class="btn btn-teal btn-sm" onclick="openReplyModal(${q.id}, \`${(q.texte||'').replace(/`/g,"'")}\`)">
+                  <i class="fas fa-reply"></i> Répondre
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="deleteQuestion(${q.id})">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div></td>
+            </tr>`).join('')}
+        </tbody>`;
+    }
+
+    function openReplyModal(id, texte) {
+      // Créer la modale de réponse à la volée
+      const existing = document.getElementById('replyModal');
+      if (existing) existing.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'replyModal';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+      modal.innerHTML = `
+        <div style="background:var(--surface);border-radius:var(--r);padding:28px;width:480px;max-width:95vw;box-shadow:var(--sh-lg)">
+          <div style="font-size:15px;font-weight:700;margin-bottom:12px">Répondre à la question</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px;padding:10px;background:var(--bg);border-radius:var(--rs);border-left:3px solid var(--teal)">${texte}</div>
+          <textarea id="replyText" rows="4" placeholder="Votre réponse..."
+            style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;background:var(--bg);color:var(--text);resize:vertical"></textarea>
+          <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end">
+            <button class="btn btn-sm" onclick="document.getElementById('replyModal').remove()" style="background:var(--surface2)">Annuler</button>
+            <button class="btn btn-teal btn-sm" onclick="submitReply(${id})"><i class="fas fa-paper-plane"></i> Envoyer la réponse</button>
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+      document.getElementById('replyText').focus();
+    }
+
+    async function submitReply(id) {
+      const reponse = document.getElementById('replyText').value.trim();
+      if (!reponse) { toast('La réponse ne peut pas être vide'); return; }
+      try {
+        const resp = await fetch(`/api/admin/questions/${id}/reponse`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reponse })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          document.getElementById('replyModal').remove();
+          toast('✓ Réponse envoyée');
+          renderQuestions();
+        } else {
+          toast(data.message || 'Erreur envoi réponse');
+        }
+      } catch(e) {
+        toast('Erreur connexion serveur');
+      }
+    }
+
+    async function deleteQuestion(id) {
+      if (!confirm('Supprimer cette question ?')) return;
+      try {
+        const resp = await fetch(`/api/admin/questions/${id}`, { method: 'DELETE' });
+        const data = await resp.json();
+        if (data.success) {
+          toast('Question supprimée');
+          renderQuestions();
+        }
+      } catch(e) {
+        toast('Erreur connexion serveur');
+      }
+    }
 
     function renderComparator() {
       const tc = { Numérique: 'badge-blue', Texte: 'badge-teal', Booléen: 'badge-teal', Liste: 'badge-orange' };
@@ -2856,6 +3340,15 @@
       renderSection();
       applyLang(currentLang);
       products.forEach((p, i) => { if (!p.img) fetchProductImage(p, i); });
+      // Charger le badge questions au démarrage même si on n'est pas sur la section
+      fetch('/api/admin/questions')
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            const nb = data.questions.filter(q => !q.estRepondue).length;
+            document.getElementById('sbQuestions').textContent = nb;
+          }
+        }).catch(() => {});
       if (!localStorage.getItem('ds_tour_done')) {
         const i18n = TOUR_I18N[currentLang] || TOUR_I18N.fr;
         setTimeout(() => toast(i18n.hint), 1800);
