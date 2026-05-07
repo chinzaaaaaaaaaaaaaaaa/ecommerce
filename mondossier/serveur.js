@@ -529,23 +529,15 @@ app.post("/api/products", async (req, res) => {
    UPDATE PRODUCT (Admin)
 ========================= */
 app.put("/api/products/:id", async (req, res) => {
-  const { nom, description, prix, stock, image, marque } = req.body;
+  const { nom, description, prix, stock, image, marque, idCategorie } = req.body;
   try {
-    let catId = null;
-    if (req.body.categorie) {
+    let catId = idCategorie || null;
+    if (!catId && req.body.categorie) {
       const catRows = await query(
         "SELECT idCategorie FROM categorie WHERE nom = ?",
         [req.body.categorie]
       );
-      if (catRows.length) {
-        catId = catRows[0].idCategorie;
-      } else {
-        const catResult = await query(
-          "INSERT INTO categorie (nom, description, icone) VALUES (?, '', '')",
-          [req.body.categorie]
-        );
-        catId = catResult.insertId;
-      }
+      if (catRows.length) catId = catRows[0].idCategorie;
     }
 
     await query(
@@ -1006,7 +998,7 @@ app.post("/api/promo/generate", async (req, res) => {
   try {
     // Vérifier qu'il n'a pas déjà un code actif pour cette récompense
     const existing = await query(
-      `SELECT codePromo FROM Promotion
+      `SELECT codePromo FROM promotion
        WHERE idClientOwner = ? AND rewardId = ?
          AND estUtilise = 0 AND dateFin > NOW() AND estActive = 1`,
       [idClient, rewardId]
@@ -1126,7 +1118,7 @@ app.put("/api/promo/use", async (req, res) => {
   if (!code) return res.json({ success: false });
   try {
     await query(
-      `UPDATE Promotion
+      `UPDATE promotion
        SET estUtilise      = 1,
            dateUtilisation = NOW(),
            idCommandeUsed  = ?
@@ -1587,7 +1579,7 @@ app.post("/api/admin/promotions", async (req, res) => {
       return res.status(409).json({ success: false, message: "Ce code promo existe déjà" });
 
     const result = await query(
-      `INSERT INTO Promotion (titre, codePromo, typeReduction, tauxReduction, dateDebut, dateFin, estActive)
+      `INSERT INTO promotion (titre, codePromo, typeReduction, tauxReduction, dateDebut, dateFin, estActive)
        VALUES (?, UPPER(?), ?, ?, ?, ?, 1)`,
       [titre, codePromo, typeReduction, parseFloat(tauxReduction), dateDebut, dateFin]
     );
@@ -1614,7 +1606,7 @@ app.put("/api/admin/promotions/:id/toggle", async (req, res) => {
 // Supprimer une promo admin
 app.delete("/api/admin/promotions/:id", async (req, res) => {
   try {
-    await query("DELETE FROM Promotion WHERE idPromotion = ? AND idClientOwner IS NULL", [req.params.id]);
+    await query("DELETE FROM promotion WHERE idPromotion = ? AND idClientOwner IS NULL", [req.params.id]);
     res.json({ success: true, message: "Promotion supprimée" });
   } catch (err) {
     res.status(500).json({ success: false, message: "Erreur suppression promotion" });
@@ -1758,6 +1750,312 @@ app.get("/api/admin/livraisons/:id/suivi", async (req, res) => {
     res.status(500).json({ success: false, message: "Erreur chargement suivi" });
   }
 });
+
+
+/* =========================
+   STATISTIQUES DE VENTE (Admin)
+========================= */
+app.get("/api/admin/stats", async (req, res) => {
+  try {
+    // Chiffre d'affaires total
+    const [ca] = await query(
+      `SELECT COALESCE(SUM(montantTotal), 0) AS total FROM commande WHERE statut != 'annulé'`
+    );
+
+    // Nombre total de commandes
+    const [nbCommandes] = await query(
+      `SELECT COUNT(*) AS total FROM commande`
+    );
+
+    // Nombre total de clients
+    const [nbClients] = await query(
+      `SELECT COUNT(*) AS total FROM client`
+    );
+
+    // Nombre de produits disponibles
+    const [nbProduits] = await query(
+      `SELECT COUNT(*) AS total FROM produit WHERE estDisponible = 1`
+    );
+
+    // Ventes par mois (6 derniers mois)
+    const ventesParMois = await query(
+      `SELECT 
+        DATE_FORMAT(dateCommande, '%Y-%m') AS mois,
+        COUNT(*) AS nbCommandes,
+        COALESCE(SUM(montantTotal), 0) AS ca
+       FROM commande
+       WHERE dateCommande >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+         AND statut != 'annulé'
+       GROUP BY mois
+       ORDER BY mois ASC`
+    );
+
+    // Ventes par catégorie
+    const ventesParCategorie = await query(
+      `SELECT 
+        c.nom AS categorie,
+        COUNT(lc.idLigne) AS nbVentes,
+        COALESCE(SUM(lc.prixUnitaire * lc.quantite), 0) AS ca
+       FROM lignecommande lc
+       JOIN produit p ON p.idProduit = lc.idProduit
+       JOIN categorie c ON c.idCategorie = p.idCategorie
+       GROUP BY c.idCategorie
+       ORDER BY ca DESC`
+    );
+
+    // Top 5 produits les plus vendus
+    const topProduits = await query(
+      `SELECT 
+        p.nom,
+        p.prix,
+        SUM(lc.quantite) AS qteTotale,
+        SUM(lc.prixUnitaire * lc.quantite) AS ca
+       FROM lignecommande lc
+       JOIN produit p ON p.idProduit = lc.idProduit
+       GROUP BY p.idProduit
+       ORDER BY qteTotale DESC
+       LIMIT 5`
+    );
+
+    // Commandes par statut
+    const commandesParStatut = await query(
+      `SELECT statut, COUNT(*) AS nb
+       FROM commande
+       GROUP BY statut`
+    );
+
+    // Nouveaux clients ce mois
+    const [nouveauxClients] = await query(
+      `SELECT COUNT(*) AS total FROM utilisateur
+       WHERE typeUtilisateur = 'client'
+         AND MONTH(dateInscription) = MONTH(NOW())
+         AND YEAR(dateInscription) = YEAR(NOW())`
+    );
+
+    res.json({
+      success: true,
+      stats: {
+        ca: ca.total,
+        nbCommandes: nbCommandes.total,
+        nbClients: nbClients.total,
+        nbProduits: nbProduits.total,
+        nouveauxClients: nouveauxClients.total,
+        ventesParMois,
+        ventesParCategorie,
+        topProduits,
+        commandesParStatut
+      }
+    });
+  } catch (err) {
+    console.log("Stats error:", err);
+    res.json({ success: false, stats: {} });
+  }
+});
+
+
+/* =========================
+   GESTION DES LIVRAISONS (Admin)
+========================= */
+
+// 1. Lister toutes les livraisons
+app.get("/api/admin/livraisons", async (req, res) => {
+  try {
+    const rows = await query(`
+      SELECT 
+        l.idLivraison,
+        l.adresse,
+        l.wilaya,
+        l.dateEstimee,
+        l.dateEffective,
+        l.fraisLivraison,
+        c.idCommande,
+        c.statut AS statutCommande,
+        c.montantTotal,
+        c.dateCommande,
+        u.prenom AS prenomClient,
+        u.nom AS nomClient,
+        u.telephone
+      FROM livraison l
+      JOIN commande c ON c.idCommande = l.idCommande
+      JOIN utilisateur u ON u.idUtilisateur = c.idClient
+      ORDER BY c.dateCommande DESC
+    `);
+
+    const livraisons = rows.map(r => ({
+      id: r.idLivraison,
+      adresse: r.adresse,
+      wilaya: r.wilaya,
+      dateEstimee: r.dateEstimee,
+      dateEffective: r.dateEffective,
+      fraisLivraison: r.fraisLivraison,
+      statut: r.statutCommande,
+      commande: {
+        id: '#' + r.idCommande,
+        total: r.montantTotal,
+        date: new Date(r.dateCommande).toLocaleDateString("fr-FR")
+      },
+      client: {
+        nom: (r.prenomClient + ' ' + r.nomClient).trim(),
+        telephone: r.telephone || ''
+      }
+    }));
+
+    res.json({ success: true, livraisons });
+  } catch (err) {
+    console.log("Livraisons error:", err);
+    res.json({ success: false, livraisons: [] });
+  }
+});
+
+// 2. Avancer le statut d'une livraison
+app.put("/api/admin/livraisons/:id/statut", async (req, res) => {
+  const { statut } = req.body;
+  if (!statut)
+    return res.json({ success: false, message: "Statut manquant" });
+  try {
+    // Mettre à jour la livraison
+    const updates = { statut };
+    if (statut === 'Livré') {
+      await query(
+        `UPDATE livraison SET dateEffective = NOW() WHERE idLivraison = ?`,
+        [req.params.id]
+      );
+    }
+
+    // Récupérer la commande liée
+    const rows = await query(
+      `SELECT idCommande FROM livraison WHERE idLivraison = ?`,
+      [req.params.id]
+    );
+    if (!rows.length)
+      return res.json({ success: false, message: "Livraison introuvable" });
+
+    const idCommande = rows[0].idCommande;
+
+    // Mapper statut livraison → statut commande
+    const statutMap = {
+      'En préparation': 'en préparation',
+      'Expédié':        'expédié',
+      'En transit':     'expédié',
+      'Livré':          'livré',
+      'Échec livraison':'annulé'
+    };
+    const nouveauStatut = statutMap[statut] || statut.toLowerCase();
+
+    await query(
+      `UPDATE commande SET statut = ? WHERE idCommande = ?`,
+      [nouveauStatut, idCommande]
+    );
+
+    res.json({ success: true, message: "Statut mis à jour" });
+  } catch (err) {
+    console.log("Update livraison error:", err);
+    res.json({ success: false, message: "Erreur mise à jour" });
+  }
+});
+
+// 3. Créer une livraison pour une commande
+app.post("/api/admin/livraisons", async (req, res) => {
+  const { idCommande, adresse, wilaya, fraisLivraison, dateEstimee } = req.body;
+  if (!idCommande)
+    return res.json({ success: false, message: "idCommande manquant" });
+  try {
+    // Vérifier si livraison existe déjà
+    const existing = await query(
+      "SELECT idLivraison FROM livraison WHERE idCommande = ?",
+      [idCommande]
+    );
+    if (existing.length)
+      return res.json({ success: false, message: "Livraison déjà créée" });
+
+    await query(
+      `INSERT INTO livraison 
+        (adresse, wilaya, dateEstimee, fraisLivraison, idCommande)
+       VALUES (?, ?, ?, ?, ?)`,
+      [adresse || '', wilaya || '', dateEstimee || null,
+       fraisLivraison || 0, idCommande]
+    );
+
+    // Mettre à jour statut commande
+    await query(
+      "UPDATE commande SET statut = 'en préparation' WHERE idCommande = ?",
+      [idCommande]
+    );
+
+    res.json({ success: true, message: "Livraison créée" });
+  } catch (err) {
+    console.log("Create livraison error:", err);
+    res.json({ success: false, message: "Erreur création livraison" });
+  }
+});
+
+
+/* =========================
+   GESTION DES CATÉGORIES (Admin)
+========================= */
+
+// 1. Lister toutes les catégories
+app.get("/api/admin/categories", async (req, res) => {
+  try {
+    const rows = await query(`
+      SELECT c.*, COUNT(p.idProduit) AS nbProduits
+      FROM categorie c
+      LEFT JOIN produit p ON p.idCategorie = c.idCategorie
+      GROUP BY c.idCategorie
+      ORDER BY c.nom ASC
+    `);
+    res.json({ success: true, categories: rows });
+  } catch (err) {
+    res.json({ success: false, categories: [] });
+  }
+});
+
+// 2. Ajouter une catégorie
+app.post("/api/admin/categories", async (req, res) => {
+  const { nom, description, icone } = req.body;
+  if (!nom) return res.json({ success: false, message: "Nom obligatoire" });
+  try {
+    const result = await query(
+      "INSERT INTO categorie (nom, description, icone) VALUES (?, ?, ?)",
+      [nom, description || '', icone || '📦']
+    );
+    res.json({ success: true, idCategorie: result.insertId });
+  } catch (err) {
+    res.json({ success: false, message: "Erreur ajout catégorie" });
+  }
+});
+
+// 3. Modifier une catégorie
+app.put("/api/admin/categories/:id", async (req, res) => {
+  const { nom, description, icone } = req.body;
+  if (!nom) return res.json({ success: false, message: "Nom obligatoire" });
+  try {
+    await query(
+      "UPDATE categorie SET nom=?, description=?, icone=? WHERE idCategorie=?",
+      [nom, description || '', icone || '📦', req.params.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, message: "Erreur modification" });
+  }
+});
+
+// 4. Supprimer une catégorie
+app.delete("/api/admin/categories/:id", async (req, res) => {
+  try {
+    const prods = await query(
+      "SELECT COUNT(*) AS nb FROM produit WHERE idCategorie=?",
+      [req.params.id]
+    );
+    if (prods[0].nb > 0)
+      return res.json({ success: false, message: `Impossible — ${prods[0].nb} produit(s) utilisent cette catégorie` });
+    await query("DELETE FROM categorie WHERE idCategorie=?", [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, message: "Erreur suppression" });
+  }
+});
+
 
 /* =========================
    START SERVER (unique)
