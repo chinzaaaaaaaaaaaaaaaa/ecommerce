@@ -904,7 +904,22 @@
       background: var(--red);
       color: #fff
     }
-
+.btn-icon {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 12px;
+  transition: all var(--t);
+}
+.btn-icon:hover { border-color: var(--teal); color: var(--teal); }
+.btn-icon.danger:hover { border-color: var(--red); color: var(--red); }
     .btn-green {
       background: var(--surface2);
       color: var(--text);
@@ -1803,6 +1818,7 @@
         <select class="form-input" id="pCat">
   <option value="">-- Choisir une catégorie --</option>
 </select>
+</div>
       <div class="form-row">
         <div class="form-group"><label class="form-label" data-i="priceDA">Prix (DA)</label><input class="form-input"
             type="number" id="pPrice"></div>
@@ -2680,7 +2696,20 @@ document.getElementById('sbUsers').textContent   = (users || []).length;
 
 
 
-
+async function failDelivery(i) {
+  if (!confirm('Signaler cet envoi comme échec de livraison ?')) return;
+  const d = deliveries[i];
+  try {
+    await fetch(`/api/admin/livraisons/${d.idLivraison}/statut`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ statut: 'Échec livraison' })
+    });
+    deliveries[i].statut = 'Échec livraison';
+    renderDelivery();
+    toast('⚠️ Échec de livraison signalé');
+  } catch(e) { toast('❌ Erreur serveur'); }
+}
 
     function openAddProd() {
       document.getElementById('prodIdx').value = '-1';
@@ -2808,7 +2837,9 @@ async function delProd(i) {
     </tr>`).join('')}</tbody>`;
     }
     function openAddCat() { document.getElementById('catIdx').value = '-1'; document.getElementById('catModalTitle').textContent = t('addCategory'); document.getElementById('catName').value = ''; document.getElementById('catIcon').value = ''; document.getElementById('catDesc').value = ''; openModal('catModal'); }
+    
     function openEditCat(i) { const c = categories[i]; document.getElementById('catIdx').value = i; document.getElementById('catModalTitle').textContent = t('thName'); document.getElementById('catName').value = c.name; document.getElementById('catIcon').value = c.icon || ''; document.getElementById('catDesc').value = c.desc || ''; openModal('catModal'); }
+    
     async function saveCat() {
       const idx  = parseInt(document.getElementById('catIdx').value);
       const name = document.getElementById('catName').value.trim();
@@ -3008,42 +3039,76 @@ async function delProd(i) {
       toast(t('statusUpdated'));
     }
 
-    async function renderDelivery() {
-      try {
-        const r = await fetch('/api/admin/livraisons');
-        const d = await r.json();
-        if (d.success) {
-          deliveries = d.livraisons.map(l => ({
-            id:     l.commande.id,
-            client: l.client.nom,
-            addr:   l.adresse + (l.wilaya ? ', ' + l.wilaya : ''),
-            step:   Math.max(0, ['En préparation','Expédié','En transit','Livré'].indexOf(l.statut)),
-            steps:  ['En préparation','Expédié','En transit','Livré','Échec livraison'],
-            statut: l.statut,
-            idLivraison: l.id
-          }));
-        }
-      } catch(e) { console.warn('renderDelivery fetch error:', e); }
-      document.getElementById('deliveryList').innerHTML = deliveries.map((d, di) => `
+   
+async function renderDelivery() {
+  try {
+    const r = await fetch('/api/admin/livraisons');
+    const d = await r.json();
+    if (d.success) {
+      deliveries = d.livraisons.map(l => ({
+        id:          l.commande.id,
+        client:      l.client.nom,
+        addr:        l.adresse + (l.wilaya ? ', ' + l.wilaya : ''),
+        step:        Math.max(0, ['en préparation','expédié','en transit','livré']
+                               .indexOf((l.statut||'').toLowerCase())),
+        steps:       ['En préparation','Expédié','En transit','Livré'],
+        statut:      l.statut,
+        idLivraison: l.id
+      }));
+    }
+  } catch(e) { console.warn('renderDelivery fetch error:', e); }
+
+  if (!deliveries.length) {
+    document.getElementById('deliveryList').innerHTML =
+      `<div style="text-align:center;padding:40px;color:var(--muted)">
+         <i class="fas fa-truck" style="font-size:32px;margin-bottom:12px;display:block;opacity:.3"></i>
+         Aucune livraison en cours
+       </div>`;
+    return;
+  }
+
+  document.getElementById('deliveryList').innerHTML = deliveries.map((d, di) => `
     <div style="border:1px solid var(--border);border-radius:var(--r);padding:17px;margin-bottom:13px">
+
+      ${d.statut === 'Échec livraison'
+        ? `<div style="background:var(--red-light);color:var(--red);padding:8px 12px;border-radius:var(--rs);font-size:13px;margin-bottom:10px;border:1px solid rgba(220,38,38,.2)">
+             ⚠️ Échec de livraison — à replanifier
+           </div>`
+        : ''}
+
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;flex-wrap:wrap;gap:8px">
         <div>
           <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">${d.id}</code>
           <div style="font-weight:700;font-size:15px;margin-top:2px">${d.client}</div>
           <div style="font-size:12px;color:var(--muted)">${d.addr}</div>
         </div>
-        ${d.step < d.steps.length - 1 ? `<button class="btn btn-teal btn-sm" onclick="advanceDelivery(${di})"><i class="fas fa-arrow-right"></i> ${t('advanceStep')}</button>` : `<span class="badge badge-teal">${t('delivered')}</span>`}
+        ${d.statut === 'Échec livraison'
+          ? `<span class="badge badge-red">⚠️ Échec</span>`
+          : d.step < d.steps.length - 1
+            ? `<div style="display:flex;gap:6px">
+                 <button class="btn btn-teal btn-sm" onclick="advanceDelivery(${di})">
+                   <i class="fas fa-arrow-right"></i> ${t('advanceStep')}
+                 </button>
+                 <button class="btn btn-danger btn-sm" onclick="failDelivery(${di})" title="Signaler échec">
+                   <i class="fas fa-times"></i>
+                 </button>
+               </div>`
+            : `<span class="badge badge-teal">${t('delivered')}</span>`}
       </div>
+
       <div class="track-steps">${d.steps.map((s, si) => {
         const cls = si < d.step ? 'ts-done' : si === d.step ? 'ts-current' : '';
         return `<div class="ts-step ${cls}"><div class="ts-dot">${si < d.step ? '✓' : si === d.step ? '▶' : si + 1}</div><div class="ts-lbl">${s}</div></div>`;
       }).join('')}</div>
+
       <div style="margin-top:10px">
         <div class="progress"><div class="progress-fill" style="width:${Math.round((d.step / Math.max(d.steps.length - 1, 1)) * 100)}%"></div></div>
         <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:4px">${Math.round((d.step / Math.max(d.steps.length - 1, 1)) * 100)}%</div>
       </div>
+
     </div>`).join('');
-    }
+}
+
     async function advanceDelivery(i) {
       const d = deliveries[i];
       if (!d || d.step >= d.steps.length - 1) return;
@@ -3104,21 +3169,25 @@ async function delProd(i) {
       openModal('ptsModal');
     }
     async function savePts() {
-      const idx = parseInt(document.getElementById('ptsUser').value);
-      const amt = parseInt(document.getElementById('ptsAmt').value) || 0;
-      const u   = users[idx];
-      if (!u) return;
-      try {
-        // Ajouter les points via le serveur (réutilise le endpoint loyalty)
-        // On met à jour directement dans comptefidelite
-        await fetch(`/api/profile/${u.id}`, { method: 'GET' }); // vérification silencieuse
-      } catch(e) {}
-      // Mise à jour locale optimiste
+  const idx = parseInt(document.getElementById('ptsUser').value);
+  const amt = parseInt(document.getElementById('ptsAmt').value) || 0;
+  const u   = users[idx];
+  if (!u || amt <= 0) return;
+  try {
+    const r = await fetch('/api/loyalty/assign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idClient: u.id, points: amt })
+    });
+    const d = await r.json();
+    if (d.success) {
       users[idx].pts = (users[idx].pts || 0) + amt;
       closeModal('ptsModal');
       renderPoints();
       toast(`${amt} ${t('ptsAssigned')} ${u.first}`);
-    }
+    } else toast('❌ ' + d.message);
+  } catch(e) { toast('❌ Erreur serveur'); }
+}
 
     async function renderUsers() {
       try {
@@ -3404,7 +3473,12 @@ async function delProd(i) {
     function openAddCrit() { document.getElementById('critIdx').value = '-1'; document.getElementById('critModalTitle').textContent = t('addCriteria'); document.getElementById('critName').value = ''; document.getElementById('critPrio').value = 3; openModal('critModal'); }
     function openEditCrit(i) { document.getElementById('critIdx').value = i; document.getElementById('critModalTitle').textContent = t('thCriteria'); document.getElementById('critName').value = criteria[i].name; document.getElementById('critType').value = criteria[i].type; document.getElementById('critPrio').value = criteria[i].priority; openModal('critModal'); }
     function saveCrit() { const idx = parseInt(document.getElementById('critIdx').value); const item = { name: document.getElementById('critName').value, type: document.getElementById('critType').value, priority: parseInt(document.getElementById('critPrio').value) || 3, active: idx >= 0 ? criteria[idx].active : true }; if (isNaN(idx) || idx < 0) criteria.push(item); else criteria[idx] = item; saveData('ds_criteria', criteria); closeModal('critModal'); renderComparator(); toast(t('saved')); }
-    function toggleCrit(i) { criteria[i].active = !criteria[i].active; saveData('ds_criteria', criteria); toast(criteria[i].active ? t('critEnabled') : t('critDisabled')); }
+    function toggleCrit(i) {
+  criteria[i].active = !criteria[i].active;
+  saveData('ds_criteria', criteria);
+  renderComparator(); // ← ajouter cette ligne
+  toast(criteria[i].active ? t('critEnabled') : t('critDisabled'));
+}
     function delCrit(i) { if (!confirm(t('confirmDelete'))) return; criteria.splice(i, 1); saveData('ds_criteria', criteria); renderComparator(); toast(t('deleted')); }
 
     function openAddReco() {

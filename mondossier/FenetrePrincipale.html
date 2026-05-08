@@ -1528,15 +1528,13 @@ async function loadProducts() {
         if (!p.specItems) p.specItems = {};
       });
       productsLoaded = true;
-    } else {
-      if (typeof PRODUCTS_DATA !== 'undefined') products = [...PRODUCTS_DATA];
     }
   } catch (err) {
     console.error('loadProducts error:', err);
-    if (typeof PRODUCTS_DATA !== 'undefined') products = [...PRODUCTS_DATA];
   }
-  renderHome();    // ← met à jour accueil avec vrais produits
+  renderHome();
   renderProducts();
+  // ← PLUS d'appel à loadCartForUser() ici
 }
 
 cart=[],wishlist=[],compareList=[];
@@ -2044,24 +2042,85 @@ function reorder(items){
 /* ═══════════════════════════════════════════
    PRICE ALERTS
 ═══════════════════════════════════════════ */
-function togglePriceAlert(){
-  if(!currentProduct)return;
-  const id=currentProduct.id;
-  const btn=document.getElementById('dAlertBtn');
-  if(priceAlerts[id]!==undefined){
+async function togglePriceAlert() {
+  if (!currentProduct) return;
+  if (!loggedInUserId) {
+    showToast('⚠️ Connectez-vous pour activer les alertes');
+    openAuthModal();
+    return;
+  }
+
+  const id  = currentProduct.id;
+  const btn = document.getElementById('dAlertBtn');
+  const hasAlert = priceAlerts[id] !== undefined;
+
+  if (hasAlert) {
+    // Supprimer l'alerte
+    await fetch('/api/alerts', {
+      method:  'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idClient: loggedInUserId, idProduit: id })
+    });
     delete priceAlerts[id];
-    btn.innerHTML='🔕 Alerter baisse de prix';
+    btn.innerHTML = '🔕 Alerter baisse de prix';
     btn.classList.remove('active');
-    showToast('🔕 Alerte prix désactivée');
+    showToast('🔕 Alerte désactivée');
   } else {
-    priceAlerts[id]=currentProduct.price;
-    btn.innerHTML='🔔 Alerte active ✓';
+    // Créer l'alerte
+    const res  = await fetch('/api/alerts', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idClient: loggedInUserId, idProduit: id })
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      showToast('⚠️ ' + (data.message || 'Erreur'));
+      return;
+    }
+    priceAlerts[id] = currentProduct.price;
+    btn.innerHTML = '🔔 Alerte active ✓';
     btn.classList.add('active');
-    showToast('🔔 Alerte activée ! Notification si le prix baisse.');
-    // Demo: show notification after 9s
-    setTimeout(()=>{if(priceAlerts[id]!==undefined)showPriceDropNotif(currentProduct);},9000);
+    showToast('🔔 Alerte activée ! Tu seras notifié si le prix baisse.');
   }
 }
+
+/* =========================
+   CHARGER ET AFFICHER LES VRAIES NOTIFICATIONS
+========================= */
+async function loadNotifications() {
+  if (!loggedInUserId) return;
+
+  const res  = await fetch('/api/notifications/' + loggedInUserId);
+  const data = await res.json();
+  if (!data.success || !data.notifications.length) return;
+
+  const nonLues = data.notifications.filter(n => !n.estLue);
+
+  // Afficher la plus récente non lue
+  if (nonLues.length) {
+    const n = nonLues[0];
+    showRealNotification(n);
+    // Marquer comme lue
+    await fetch('/api/notifications/' + n.idNotification + '/read', {
+      method: 'PUT'
+    });
+  }
+}
+
+function showRealNotification(n) {
+  document.getElementById('alertName').textContent = n.nomProduit;
+  document.getElementById('alertOld').textContent  =
+    Number(n.ancienPrix).toLocaleString('fr-DZ') + ' DA';
+  document.getElementById('alertNew').textContent  =
+    Number(n.nouveauPrix).toLocaleString('fr-DZ') + ' DA';
+  document.getElementById('alertImg').src = n.image || '';
+
+  const notif = document.getElementById('priceDropNotif');
+  notif.classList.add('show');
+  setTimeout(() => notif.classList.remove('show'), 7000);
+}
+
 function showPriceDropNotif(p){
   const np=Math.round(p.price*.88);
   document.getElementById('alertName').textContent=p.name;
@@ -2351,6 +2410,7 @@ async function loadProfileAndOrders(){
   }catch(_e){}
   await loadCartForUser();
   loadWishlistForUser();
+  loadNotifications();
   updateLoyaltyMini();
   if(document.getElementById('page-profile') && document.getElementById('page-profile').classList.contains('active')){
     renderProfilePage();
@@ -3140,6 +3200,11 @@ async function submitReview() {
    CART
 ═══════════════════════════════════════════ */
 function addToCart(id, btn) {
+  if (!loggedInUserId) {
+    showToast('⚠️ Connectez-vous pour ajouter au panier');
+    openAuthModal();
+    return;
+  }
   const p = products.find(pr => pr.id === id);
   if (!p) return;
   const ex = cart.find(i => i.id === id);
@@ -3814,6 +3879,11 @@ function loadWishlistForUser() {
 async function loadCartForUser() {
   if (!loggedInUserId) return;
 
+  // ← ATTENDRE que les produits soient chargés
+  if (!productsLoaded) {
+    await loadProducts();
+  }
+
   const guestKey  = 'ds-cart-guest';
   const guestCart = JSON.parse(localStorage.getItem(guestKey) || '[]');
 
@@ -3821,40 +3891,48 @@ async function loadCartForUser() {
     const res  = await fetch('/api/cart/' + loggedInUserId);
     const data = await res.json();
 
-    if (data.success && Array.isArray(data.items)) {
-      // Toujours prendre le panier DB, même s'il est vide
-      const dbCart = data.items;
+    if (data.success && Array.isArray(data.items) && data.items.length) {
+      cart = data.items.map(item => {
+        const p = products.find(pr => pr.id === item.id);
+        if (p) return { ...p, qty: item.qty, price: item.price || p.price };
+        return null;
+      }).filter(Boolean);
 
-      // Fusionner avec le panier guest
+      // Fusionner avec panier guest
       for (const g of guestCart) {
-        const ex = dbCart.find(i => i.id === g.id);
+        const p = products.find(pr => pr.id === g.id);
+        if (!p) continue;
+        const ex = cart.find(i => i.id === g.id);
         if (ex) ex.qty += g.qty;
-        else    dbCart.push(g);
+        else cart.push({ ...p, qty: g.qty });
       }
 
-      cart = dbCart;
     } else if (guestCart.length) {
-      // Pas de panier en DB, utiliser le panier guest
-      cart = guestCart;
+      cart = guestCart.map(g => {
+        const p = products.find(pr => pr.id === g.id);
+        return p ? { ...p, qty: g.qty } : null;
+      }).filter(Boolean);
     } else {
-      // Fallback : panier vide
-      cart = [];
+      // Fallback localStorage
+      const saved = localStorage.getItem(getCartKey());
+      if (saved) {
+        const raw = JSON.parse(saved);
+        cart = raw.map(item => {
+          if (item.name) return item;
+          const p = products.find(pr => pr.id === item.id);
+          return p ? { ...p, qty: item.qty } : null;
+        }).filter(Boolean);
+      } else {
+        cart = [];
+      }
     }
 
-    // Effacer le panier guest maintenant qu'on est connecté
     localStorage.removeItem(guestKey);
-
-    // Sauvegarder la version fusionnée en localStorage
     localStorage.setItem(getCartKey(), JSON.stringify(cart));
-
-    // ⚠️ Ne pas synchroniser automatiquement au chargement
-    // syncCartToDB(); ← à appeler seulement quand l’utilisateur modifie son panier
 
   } catch (err) {
     console.error("Erreur chargement panier:", err.message);
-    const saved = localStorage.getItem(getCartKey());
-    if (saved) cart = JSON.parse(saved);
-    else cart = [];
+    cart = [];
   }
 
   updateCartCount();
