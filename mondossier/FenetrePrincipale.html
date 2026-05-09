@@ -2125,11 +2125,17 @@ function handleAvatarUpload(input) {
 function loadSavedAvatar() {
   if (!loggedInUserId) return;
   const saved = localStorage.getItem('ds-avatar-' + loggedInUserId);
-  if (saved) {
-    const img = document.getElementById('profileAvatarImg');
-    const initials = document.getElementById('profileAvatarInitials');
-    if (img) { img.src = saved; img.style.display = 'block'; }
-    if (initials) initials.style.display = 'none';
+  const img = document.getElementById('profileAvatarImg');
+  const initials = document.getElementById('profileAvatarInitials');
+  if (saved && img && initials) {
+    img.src = saved;
+    img.style.display = 'block';
+    initials.style.display = 'none';
+  } else if (img && initials) {
+    img.src = '';
+    img.style.display = 'none';
+    initials.style.display = '';
+    initials.textContent = (loggedInUser||'U').substring(0,2).toUpperCase();
   }
 }
 
@@ -2972,6 +2978,9 @@ async function registerUser(){
   var address=document.getElementById('regAddress').value.trim();
   if(!name||!email||!pass||!phone||!address){showToast('⚠️ Remplissez tous les champs !');return;}
   if(pass.length<8){showToast('⚠️ Mot de passe trop court (8 car. min)');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showToast('⚠️ Email invalide — ex: nom@domaine.com');return;}
+  const phoneClean=phone.replace(/[\s\-\.]/g,'');
+  if(!/^(0)(5|6|7)[0-9]{8}$/.test(phoneClean)){showToast('⚠️ Numéro algérien invalide — ex: 0550 123 456');return;}
   
   // Séparer prénom (premier mot) et nom (reste)
   var parts = name.split(/\s+/).filter(Boolean);
@@ -3100,19 +3109,6 @@ function renderProfilePage(){
   if(!loggedInUserId) return;
   var saved=JSON.parse(localStorage.getItem(getProfileStorageKey())||'{}');
 
-  // Avatar
-  var avImg = document.getElementById('profileAvatarImg');
-  var avInit = document.getElementById('profileAvatarInitials');
-  var savedAvatar = localStorage.getItem('ds-avatar-' + loggedInUserId);
-  if(savedAvatar && avImg && avInit){
-    avImg.src = savedAvatar;
-    avImg.style.display = 'block';
-    avInit.style.display = 'none';
-  } else {
-    if(avImg) avImg.style.display = 'none';
-    if(avInit){ avInit.style.display = ''; avInit.textContent = (loggedInUser||'U').substring(0,2).toUpperCase(); }
-  }
-
   // Nom / email
   var pn=document.getElementById('profileName');
   if(pn) pn.textContent=loggedInUser;
@@ -3147,9 +3143,10 @@ function renderProfilePage(){
 
   // Commandes récentes
   var ordEl=document.getElementById('profileRecentOrders');
-  if(!ordEl) return;
+  if(!ordEl){ loadSavedAvatar(); return; }
   if(!orderHistory.length){
     ordEl.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted)"><p style="margin-bottom:12px">Aucune commande pour l\'instant</p><button class="btn btn-teal" style="margin-top:8px" onclick="nav(\'catalog\');setActive(document.getElementById(\'nl-catalog\'))">Explorer le catalogue</button></div>';
+    loadSavedAvatar();
     return;
   }
   var sColor={'livré':'var(--green)','en préparation':'var(--teal)','en transit':'var(--orange)','annulé':'var(--red)'};
@@ -3305,6 +3302,8 @@ function formatExp(el){let v=el.value.replace(/\D/g,'');if(v.length>=2)v=v.subst
 function validatePayment(){
   const fn=document.getElementById('del-firstname').value.trim();const ln=document.getElementById('del-lastname').value.trim();const phone=document.getElementById('del-phone').value.trim();const addr=document.getElementById('del-address').value.trim();const wilaya=document.getElementById('del-wilaya').value;
   if(!fn||!ln||!phone||!addr||!wilaya){showToast("⚠️ Remplissez l'adresse de livraison complète");return false;}
+  const phonePayClean=phone.replace(/[\s\-\.]/g,'');
+  if(!/^(0)(5|6|7)[0-9]{8}$/.test(phonePayClean)){showToast('⚠️ Numéro algérien invalide — commence par 05, 06 ou 07');return false;}
   if(currentPayMethod==='cib'){const num=document.getElementById('card-num').value.replace(/\s/g,'');if(num.length<16){showToast('⚠️ Numéro de carte invalide');return false;}if(!document.getElementById('card-name').value.trim()){showToast('⚠️ Nom du titulaire requis');return false;}if(!document.getElementById('card-exp').value.match(/^\d{2}\/\d{2}$/)){showToast("⚠️ Date d'expiration invalide");return false;}if(document.getElementById('card-cvv').value.length<3){showToast('⚠️ CVV invalide');return false;}}
   if(currentPayMethod==='dahabia'){if(document.getElementById('dah-num').value.replace(/\s/g,'').length<16){showToast('⚠️ Numéro Dahabia invalide');return false;}}
   return true;
@@ -3491,11 +3490,22 @@ function renderHome() {
   const catCounts = {};
   products.forEach(p => { catCounts[p.cat] = (catCounts[p.cat] || 0) + 1; });
 
+  const catNameMap = {
+    'Écrans': 'Écrans',
+    'Processeurs': 'Processeurs',
+    'Périphériques': 'Périphériques',
+    'Cartes graphiques': 'GPU',
+    'Stockage': 'Stockage',
+    'Mémoire RAM': 'RAM',
+    'Réseau': 'Réseau',
+    'Boîtiers & Alim.': 'Boîtiers'
+  };
   document.querySelectorAll('.cats-grid .cat-card').forEach(card => {
     const catName = card.querySelector('.cat-name')?.textContent?.trim();
     const countEl = card.querySelector('.cat-count');
     if (countEl && catName) {
-      const count = catCounts[catName] || 0;
+      const dbKey = catNameMap[catName] || catName;
+      const count = catCounts[dbKey] || catCounts[catName] || 0;
       countEl.textContent = count + ' produit' + (count > 1 ? 's' : '');
     }
   });
