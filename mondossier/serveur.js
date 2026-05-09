@@ -253,10 +253,14 @@ app.get("/api/orders/:id", async (req, res) => {
   try {
     const rows = await query(`
       SELECT c.idCommande, c.statut, c.dateCommande, c.montantTotal,
-             lc.quantite, lc.prixUnitaire, p.nom AS nomProduit
+             c.adresseLivraison, c.wilaya,
+             lc.quantite, lc.prixUnitaire, p.nom AS nomProduit,
+             l.idLivraison, l.statut AS statutLivraison,
+             l.dateEstimee, l.dateEffective, l.fraisLivraison
       FROM commande c
       JOIN lignecommande lc ON lc.idCommande = c.idCommande
       JOIN produit p ON p.idProduit = lc.idProduit
+      LEFT JOIN livraison l ON l.idCommande = c.idCommande
       WHERE c.idClient = ?
       ORDER BY c.dateCommande DESC
     `, [req.params.id]);
@@ -269,8 +273,12 @@ app.get("/api/orders/:id", async (req, res) => {
           date: new Date(r.dateCommande).toLocaleDateString("fr-FR", { 
             day: "numeric", month: "long", year: "numeric" 
           }),
-          status: r.statut,
+          status: r.statutLivraison || r.statut,
           total: Number(r.montantTotal),
+          wilaya: r.wilaya || "",
+          adresse: r.adresseLivraison || "",
+          idLivraison: r.idLivraison || null,
+          dateEstimee: r.dateEstimee || null,
           items: []
         };
       }
@@ -294,19 +302,19 @@ app.get("/api/orders", async (req, res) => {
   try {
     const rows = await query(`
       SELECT c.idCommande, c.statut, c.dateCommande, c.montantTotal,
-             u.prenom, u.nom,
+             u.prenom, u.nom, u.email,
              GROUP_CONCAT(p.nom SEPARATOR ', ') AS nomsProduits
       FROM commande c
       JOIN utilisateur u ON u.idUtilisateur = c.idClient
       JOIN lignecommande lc ON lc.idCommande = c.idCommande
       JOIN produit p ON p.idProduit = lc.idProduit
-      GROUP BY c.idCommande, c.statut, c.dateCommande, c.montantTotal, u.prenom, u.nom
+      GROUP BY c.idCommande, c.statut, c.dateCommande, c.montantTotal, u.prenom, u.nom, u.email
       ORDER BY c.dateCommande DESC
     `);
 
     const orders = rows.map(r => ({
       id: "DS-" + r.idCommande,
-      client: (r.prenom + " " + r.nom).trim(),
+      client: ((r.prenom || '') + " " + (r.nom || '')).trim() || r.email || '—',
       date: new Date(r.dateCommande).toLocaleDateString("fr-FR"),
       status: r.statut,
       total: Number(r.montantTotal),
@@ -407,8 +415,81 @@ if (idPaiement){
 
 
 /* =========================
-   UPDATE ORDER STATUS (Admin)
+   SUIVI PUBLIC (client) par numéro de commande DS-X
 ========================= */
+app.get("/api/track/:orderNum", async (req, res) => {
+  try {
+    const rawId = req.params.orderNum.replace(/^DS-/i, "");
+    const idCommande = parseInt(rawId);
+    if (!idCommande) return res.json({ success: false, message: "Numéro invalide" });
+
+    const rows = await query(`
+      SELECT c.idCommande, c.statut AS statutCommande, c.dateCommande,
+             c.montantTotal, c.wilaya, c.adresseLivraison,
+             l.idLivraison, l.statut AS statutLivraison,
+             l.dateEstimee, l.dateEffective, l.fraisLivraison,
+             u.prenom, u.nom
+      FROM commande c
+      LEFT JOIN livraison l ON l.idCommande = c.idCommande
+      LEFT JOIN utilisateur u ON u.idUtilisateur = c.idClient
+      WHERE c.idCommande = ?
+    `, [idCommande]);
+
+    if (!rows.length) return res.json({ success: false, message: "Commande introuvable" });
+
+    const r = rows[0];
+
+    // Articles de la commande
+    const items = await query(`
+      SELECT p.nom AS name, lc.quantite AS qty, lc.prixUnitaire AS price
+      FROM lignecommande lc
+      JOIN produit p ON p.idProduit = lc.idProduit
+      WHERE lc.idCommande = ?
+    `, [idCommande]);
+
+    // Historique suivi livraison
+    let suivi = [];
+    if (r.idLivraison) {
+      suivi = await query(`
+        SELECT statut, localisation, description,
+               DATE_FORMAT(dateEtape, '%d/%m/%Y à %H:%i') AS dateFormatee
+        FROM suivilivraison
+        WHERE idLivraison = ?
+        ORDER BY dateEtape ASC
+      `, [r.idLivraison]);
+    }
+
+    // Normaliser 'En cours' (statut commande initial) → 'En préparation' (statut livraison)
+    const statusNorm = {
+      'en cours': 'En préparation',
+      'confirmed': 'En préparation',
+      'confirmé': 'En préparation'
+    };
+    const rawStatut = r.statutLivraison || r.statutCommande || 'En cours';
+    const finalStatut = statusNorm[rawStatut.toLowerCase()] || rawStatut;
+
+    res.json({
+      success: true,
+      order: {
+        id: "DS-" + r.idCommande,
+        status: finalStatut,
+        date: new Date(r.dateCommande).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }),
+        total: Number(r.montantTotal),
+        wilaya: r.wilaya || "",
+        adresse: r.adresseLivraison || "",
+        idLivraison: r.idLivraison || null,
+        dateEstimee: r.dateEstimee || null,
+        items,
+        suivi
+      }
+    });
+  } catch (err) {
+    console.log("Track error:", err);
+    res.json({ success: false, message: "Erreur serveur" });
+  }
+});
+
+
 app.put("/api/orders/:id/status", async (req, res) => {
   const { statut } = req.body;
   try {
@@ -417,6 +498,43 @@ app.put("/api/orders/:id/status", async (req, res) => {
       "UPDATE commande SET statut=? WHERE idCommande=?",
       [statut, realId]
     );
+
+    // Synchroniser le statut de la livraison associée
+    const statutLivraisonMap = {
+      "en préparation": "En préparation",
+      "expédié":        "Expédié",
+      "en transit":     "En transit",
+      "en cours":       "En préparation",
+      "livré":          "Livré",
+      "annulé":         "Échec livraison"
+    };
+    const statutLiv = statutLivraisonMap[statut.toLowerCase()] || null;
+    if (statutLiv) {
+      const livRows = await query(
+        "SELECT idLivraison FROM livraison WHERE idCommande = ?", [realId]
+      );
+      if (livRows.length) {
+        const idLiv = livRows[0].idLivraison;
+        await query("UPDATE livraison SET statut=? WHERE idLivraison=?", [statutLiv, idLiv]);
+        if (statutLiv === "Livré") {
+          await query("UPDATE livraison SET dateEffective=NOW() WHERE idLivraison=?", [idLiv]);
+        }
+        const STATUT_LABELS = {
+          "En préparation": { desc: "Votre commande est en cours de préparation.", loc: "Entrepôt DigitalStore" },
+          "Expédié":        { desc: "Votre colis a quitté notre entrepôt.",         loc: "Centre de tri Béjaïa" },
+          "En transit":     { desc: "Le colis est en transit vers votre wilaya.",    loc: "En transit" },
+          "Livré":          { desc: "Votre colis a été livré avec succès.",          loc: "Adresse de livraison" },
+          "Échec livraison":{ desc: "La livraison n'a pas pu être effectuée.",       loc: "Retour entrepôt" }
+        };
+        const lbl = STATUT_LABELS[statutLiv] || { desc: statutLiv, loc: "" };
+        await query(
+          `INSERT INTO suivilivraison (statut, localisation, description, dateEtape, idLivraison)
+           VALUES (?, ?, ?, NOW(), ?)`,
+          [statutLiv, lbl.loc, lbl.desc, idLiv]
+        ).catch(e => console.warn("suivilivraison insert warn:", e.message));
+      }
+    }
+
     res.json({ success: true });
   } catch (err) {
     res.json({ success: false, message: "Erreur mise à jour statut" });
@@ -1397,7 +1515,7 @@ app.get("/api/admin/reviews", async (req, res) => {
       estVisible: r.estVisible === 1,
       produit: { id: r.idProduit, nom: r.nomProduit || "Produit supprimé" },
       client: {
-        nom: (r.prenomClient + " " + r.nomClient).trim() || "Anonyme",
+        nom: ((r.prenomClient || '') + ' ' + (r.nomClient || '')).trim() || "Anonyme",
         email: r.emailClient || ""
       }
     }));
@@ -1462,7 +1580,7 @@ app.get("/api/admin/questions", async (req, res) => {
       }) : null,
       estRepondue: r.estRepondue === 1,
       produit: { id: r.idProduit, nom: r.nomProduit || "Produit supprimé" },
-      client: { nom: (r.prenomClient + " " + r.nomClient).trim() || "Anonyme" }
+      client: { nom: ((r.prenomClient || '') + ' ' + (r.nomClient || '')).trim() || "Anonyme" }
     }));
 
     res.json({ success: true, questions });
@@ -1729,7 +1847,7 @@ app.get("/api/admin/livraisons", async (req, res) => {
         l.idLivraison, l.statut AS statutLivraison,
         l.adresse, l.wilaya,
         l.dateEstimee, l.dateEffective, l.fraisLivraison,
-        c.idCommande, c.statut AS statutCommande,
+        c.idCommande, c.idClient, c.statut AS statutCommande,
         c.montantTotal, c.dateCommande,
         u.prenom AS prenomClient, u.nom AS nomClient,
         u.email, u.telephone
@@ -1753,7 +1871,7 @@ app.get("/api/admin/livraisons", async (req, res) => {
         date: new Date(r.dateCommande).toLocaleDateString("fr-FR")
       },
       client: {
-        nom: (r.prenomClient + " " + r.nomClient).trim(),
+        nom: ((r.prenomClient || '') + " " + (r.nomClient || '')).trim() || r.email || 'Client #' + r.idClient,
         email: r.email,
         tel: r.telephone
       }
@@ -1805,12 +1923,28 @@ app.put("/api/admin/livraisons/:id/statut", async (req, res) => {
   if (!STATUTS_VALIDES.includes(statut))
     return res.json({ success: false, message: "Statut invalide" });
 
+  const STATUT_LABELS = {
+    "En préparation": { desc: "Votre commande est en cours de préparation.", loc: "Entrepôt DigitalStore" },
+    "Expédié":        { desc: "Votre colis a quitté notre entrepôt.",         loc: "Centre de tri Béjaïa" },
+    "En transit":     { desc: "Le colis est en transit vers votre wilaya.",    loc: "En transit" },
+    "Livré":          { desc: "Votre colis a été livré avec succès.",          loc: "Adresse de livraison" },
+    "Échec livraison":{ desc: "La livraison n'a pas pu être effectuée.",       loc: "Retour entrepôt" }
+  };
+
   try {
     // Toujours mettre à jour le statut de la livraison
     await query(
       "UPDATE livraison SET statut=? WHERE idLivraison=?",
       [statut, req.params.id]
     );
+
+    // Insérer automatiquement une étape dans suivilivraison
+    const lbl = STATUT_LABELS[statut] || { desc: statut, loc: "" };
+    await query(
+      `INSERT INTO suivilivraison (statut, localisation, description, dateEtape, idLivraison)
+       VALUES (?, ?, ?, NOW(), ?)`,
+      [statut, lbl.loc, lbl.desc, req.params.id]
+    ).catch(e => console.warn("suivilivraison insert warn:", e.message));
 
     // Si livré → dateEffective + confirmer paiement COD
     if (statut === "Livré") {

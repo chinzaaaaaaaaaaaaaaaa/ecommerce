@@ -172,7 +172,7 @@ nav {
 .logo-img { height: 34px; border-radius: 6px; }
 .logo-text { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -.5px; }
 .logo-text .digital { color: var(--teal); }
-.logo-text .store   { color: var(--muted); }
+.logo-text .store   { color: #374151; }
 
 .nav-links { display: flex; gap: 2px; flex: 1; overflow: hidden; }
 .nav-link {
@@ -1240,7 +1240,7 @@ h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-
 <div class="auth-overlay" id="authModal">
   <div class="auth-modal">
     <button class="auth-close" onclick="closeAuthModal()">✕</button>
-    <div style="text-align:center;margin-bottom:6px"><div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--teal)">Digital<span style="color:#22c55e">Store</span></div></div>
+    <div style="text-align:center;margin-bottom:6px"><div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--teal)">Digital<span style="color:#374151">Store</span></div></div>
     <div class="auth-title" id="authTitle">Se Connecter</div>
     <div class="auth-tabs">
       <button class="auth-tab active" id="loginTab" onclick="switchAuthTab('login')">Connexion</button>
@@ -1413,7 +1413,7 @@ h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-
 
     <!-- Guide -->
     <button class="tut-nav-btn" id="guideBtn" onclick="startTutorial()" title="Guide">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
       <span>Guide</span>
     </button>
 
@@ -1745,7 +1745,17 @@ h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-
           <div class="pf-row">
             <div class="pf-group">
               <label class="pf-label">Email</label>
-              <input class="pf-input" id="pfEmail" type="email" placeholder="email@exemple.com">
+              <input class="pf-input" id="pfEmail" type="email" placeholder="email@exemple.com"
+                oninput="(function(el){
+                  var v=el.value.trim();
+                  if(!v){el.style.borderColor='';el.title='';return;}
+                  var ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+                  el.style.borderColor=ok?'var(--teal)':'var(--red,#dc2626)';
+                  el.title=ok?'':'Format invalide — ex: nom@domaine.com';
+                })(this)">
+              <div id="pfEmailErr" style="color:var(--red,#dc2626);font-size:12px;margin-top:4px;display:none">
+                ⚠️ Format invalide — ex: nom@domaine.com
+              </div>
             </div>
             <div class="pf-group">
               <label class="pf-label">Téléphone</label>
@@ -3163,6 +3173,21 @@ async function saveProfile(silent){
     address:  (document.getElementById('pfAddress')  ||{}).value||''
   };
   Object.keys(data).forEach(function(k){ data[k]=data[k].trim(); });
+
+  // ── Validation email ──
+  if(data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)){
+    showToast('⚠️ Adresse email invalide (ex: nom@domaine.com)');
+    var el=document.getElementById('pfEmail');
+    var errEl=document.getElementById('pfEmailErr');
+    if(el){ el.style.borderColor='var(--red,#dc2626)'; el.focus(); }
+    if(errEl) errEl.style.display='block';
+    return;
+  }
+  // Remettre la bordure normale si email valide
+  var elEmail=document.getElementById('pfEmail');
+  var errEmail=document.getElementById('pfEmailErr');
+  if(elEmail) elEmail.style.borderColor='';
+  if(errEmail) errEmail.style.display='none';
   localStorage.setItem(getProfileStorageKey(), JSON.stringify(Object.assign({}, JSON.parse(localStorage.getItem(getProfileStorageKey())||'{}'), data)));
   if(data.firstName||data.lastName){
     loggedInUser=(data.firstName+' '+data.lastName).trim()||loggedInUser;
@@ -5037,7 +5062,7 @@ function applyTranslations(){
   };
   Object.entries(nmap).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.textContent=L[key];});
   // Guide button (desktop)
-  const gb=document.getElementById('guideBtn');if(gb)gb.textContent='✨ '+L.navGuide;
+  const gb=document.getElementById('guideBtn');if(gb)gb.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg> <span>'+L.navGuide+'</span>';
   // Mobile nav links
   const mnmap={
     'mnl-home':'navHome','mnl-catalog':'navCatalog','mnl-wish':'navWishlist',
@@ -5319,4 +5344,3 @@ function updateTutorialSteps(lang){
 
 </body>
 </html>
-   
