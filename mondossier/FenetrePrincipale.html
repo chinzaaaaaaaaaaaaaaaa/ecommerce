@@ -228,13 +228,29 @@ nav {
 
 /* Tutorial button */
 .tut-nav-btn {
-  padding: 7px 14px; border-radius: 99px;
-  background: var(--teal); color: #fff;
-  border: none; cursor: pointer; font-size: 12.5px; font-weight: 700;
-  font-family: inherit; display: flex; align-items: center; gap: 5px;
-  transition: all var(--t); white-space: nowrap; flex-shrink: 0;
+  padding: 7px 16px;
+  border-radius: 99px;
+  background: var(--teal);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--t);
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: .3px;
+  box-shadow: 0 2px 10px rgba(2,64,82,.25);
 }
-.tut-nav-btn:hover { background: var(--teal-mid); }
+.tut-nav-btn:hover {
+  background: var(--teal-mid);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(2,64,82,.35);
+}
 
 /* Loyalty mini */
 .loyalty-mini {
@@ -920,6 +936,291 @@ h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-
   .loyalty-mini span:last-child{display:none} #tutCard{width:260px}
   .profile-cards{grid-template-columns:1fr}
 }
+
+/* ══ NAV REDESIGN ══ */
+.nav-icon-btn {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--t);
+  flex-shrink: 0;
+  position: relative;
+}
+.nav-icon-btn:hover {
+  background: var(--teal-light);
+  border-color: var(--teal);
+  color: var(--teal);
+  transform: translateY(-1px);
+}
+.nav-profile-btn {
+  width: auto;
+  padding: 0 12px 0 8px;
+  gap: 7px;
+  border-radius: 99px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+.nav-profile-btn.logged-in {
+  background: var(--teal);
+  color: #fff;
+  border-color: var(--teal);
+}
+.nav-profile-btn.logged-in:hover {
+  background: var(--teal-mid);
+  color: #fff;
+}
+.nav-profile-label {
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+}
+.nav-cart-btn {
+  position: relative;
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  border: none;
+  background: var(--teal);
+  color: #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--t);
+  flex-shrink: 0;
+}
+.nav-cart-btn:hover {
+  background: var(--teal-mid);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(2,64,82,.35);
+}
+.nav-cart-btn .nav-badge {
+  position: absolute;
+  top: -6px; right: -6px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  min-width: 18px; height: 18px;
+  border-radius: 99px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--bg);
+  padding: 0 3px;
+}
+.loyalty-mini {
+  display: none; align-items: center; gap: 4px;
+  padding: 5px 10px; border-radius: 99px;
+  background: var(--teal-light);
+  border: 1px solid rgba(2,64,82,.18);
+  font-size: 11.5px; font-weight: 700; color: var(--teal);
+  cursor: pointer; transition: all var(--t); white-space: nowrap;
+}
+.loyalty-mini:hover { background: rgba(2,64,82,.14); }
+.lang-dropdown-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 5px 9px; border-radius: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  font-size: 13px; cursor: pointer;
+  color: var(--text); font-family: inherit; transition: all var(--t);
+}
+.lang-dropdown-btn:hover { border-color: var(--teal); }
+.lang-arrow { font-size: 8px; color: var(--muted); transition: transform .2s; }
+.lang-dropdown-btn.open .lang-arrow { transform: rotate(180deg); }
+
+
+/* ══ PROFILE REDESIGN ══ */
+.profile-wrap { max-width: 780px; margin: 0 auto; padding: 28px 20px 60px; }
+
+/* Hero card */
+.profile-hero-card {
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  position: relative;
+  background: linear-gradient(135deg, #021e28 0%, #024052 60%, #035870 100%);
+  box-shadow: 0 8px 32px rgba(2,64,82,.28);
+}
+.profile-hero-bg {
+  position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.profile-hero-content {
+  position: relative;
+  display: flex; align-items: center; gap: 22px;
+  padding: 32px 28px;
+}
+.profile-avatar-wrap { position: relative; flex-shrink: 0; }
+.profile-avatar-ring {
+  width: 88px; height: 88px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(90,174,196,.5), rgba(255,255,255,.2));
+  padding: 3px;
+}
+.profile-avatar {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 28px; font-weight: 800; color: #fff;
+  overflow: hidden;
+  position: relative;
+}
+#profileAvatarInitials { pointer-events: none; }
+.profile-avatar-edit {
+  position: absolute; bottom: 2px; right: 2px;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--teal);
+  border: 2px solid #fff;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; cursor: pointer;
+  transition: all .2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.profile-avatar-edit:hover { background: var(--teal-mid); transform: scale(1.1); }
+.profile-hero-info { flex: 1; min-width: 0; }
+.profile-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px; font-weight: 800; color: #fff;
+  margin-bottom: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.profile-email { color: rgba(255,255,255,.6); font-size: 13px; margin-bottom: 12px; }
+.profile-badges { display: flex; gap: 7px; flex-wrap: wrap; }
+.profile-badge-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border-radius: 99px;
+  font-size: 11.5px; font-weight: 700;
+  background: rgba(255,255,255,.13);
+  color: rgba(255,255,255,.9);
+  border: 1px solid rgba(255,255,255,.15);
+}
+.profile-badge-pill.verified { background: rgba(52,211,153,.18); border-color: rgba(52,211,153,.3); color: #6ee7b7; }
+.profile-badge-pill.level { background: rgba(251,191,36,.15); border-color: rgba(251,191,36,.25); color: #fde68a; }
+.profile-logout-fab {
+  margin-left: auto;
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.65);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s; flex-shrink: 0;
+}
+.profile-logout-fab:hover { background: rgba(239,68,68,.3); border-color: rgba(239,68,68,.4); color: #fca5a5; }
+
+/* Stats strip */
+.profile-stats-strip {
+  display: flex; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.profile-stat {
+  flex: 1; padding: 18px 12px;
+  text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.profile-stat-divider { width: 1px; height: 40px; background: var(--border); }
+.profile-stat-icon {
+  width: 34px; height: 34px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 2px;
+}
+.orders-icon { background: var(--teal-light); color: var(--teal); }
+.pts-icon { background: #fef3c7; color: #92400e; }
+.wish-icon { background: #fce7f3; color: #9d174d; }
+[data-theme="dark"] .pts-icon { background: #2a1e08; color: #fbbf24; }
+[data-theme="dark"] .wish-icon { background: #1e0a14; color: #f9a8d4; }
+.profile-stat-val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
+.profile-stat-lbl { font-size: 11px; color: var(--muted); font-weight: 500; }
+
+/* Section cards */
+.profile-sections { display: flex; flex-direction: column; gap: 12px; }
+.profile-section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: box-shadow var(--t);
+}
+.profile-section-card:hover { box-shadow: var(--sh); }
+.psc-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.psc-icon {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: var(--teal-light); color: var(--teal);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.psc-title { font-family: 'Syne', sans-serif; font-size: 14.5px; font-weight: 800; flex: 1; }
+.psc-see-all { font-size: 12px; color: var(--teal); font-weight: 600; background: none; border: none; cursor: pointer; font-family: inherit; }
+.psc-see-all:hover { text-decoration: underline; }
+.psc-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.pf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pf-group { display: flex; flex-direction: column; gap: 5px; }
+.pf-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+.pf-input {
+  padding: 10px 13px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 13.5px; font-family: inherit;
+  background: var(--bg); color: var(--text);
+  transition: all var(--t);
+}
+.pf-input:focus { outline: none; border-color: var(--teal); background: var(--surface); box-shadow: 0 0 0 3px rgba(2,64,82,.08); }
+.psc-save-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 20px; border-radius: 99px;
+  background: var(--teal); color: #fff;
+  border: none; font-size: 13px; font-weight: 700;
+  font-family: inherit; cursor: pointer;
+  transition: all var(--t);
+}
+.psc-save-btn:hover { background: var(--teal-mid); transform: translateY(-1px); }
+.psc-save-btn.outline {
+  background: transparent; color: var(--teal);
+  border: 1.5px solid var(--teal);
+}
+.psc-save-btn.outline:hover { background: var(--teal-light); }
+.pref-toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 0; border-bottom: 1px solid var(--border);
+}
+.pref-toggle-row:last-child { border-bottom: none; }
+.pref-toggle-label { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+.pref-toggle-sub { font-size: 11.5px; color: var(--muted); }
+.profile-switch-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 24px; border-radius: 99px;
+  background: var(--surface); color: var(--muted);
+  border: 1.5px solid var(--border);
+  font-size: 13px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: all var(--t);
+}
+.profile-switch-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+@media(max-width:600px){
+  .profile-hero-content { flex-direction: column; text-align: center; padding: 24px 20px; }
+  .profile-hero-info .profile-email { display: none; }
+  .profile-logout-fab { position: absolute; top: 16px; right: 16px; }
+  .pf-row { grid-template-columns: 1fr; }
+}
+
+
+
+
+
 </style>
 </head>
 <body>
@@ -1072,6 +1373,7 @@ h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-
     <img src="images/logo.png" alt="" class="logo-img" onerror="this.style.display='none'">
     <div class="logo-text"><span class="digital">Digital</span><span class="store">Store</span></div>
   </div>
+
   <div class="nav-links" id="navLinks">
     <button class="nav-link active" id="nl-home" onclick="nav('home');setActive(this)">Accueil</button>
     <button class="nav-link" id="nl-catalog" onclick="nav('catalog');setActive(this)">Catalogue</button>
@@ -1081,18 +1383,18 @@ h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-
     <button class="nav-link" id="nl-track" onclick="nav('track');setActive(this)">Suivi</button>
     <button class="nav-link" id="nl-loyalty" onclick="nav('loyalty');setActive(this)">Fidélité</button>
   </div>
+
   <div class="nav-right">
-    <div class="loyalty-mini" id="loyaltyMini" onclick="nav('loyalty')">
+    <!-- Points fidélité mini -->
+    <div class="loyalty-mini" id="loyaltyMini" onclick="nav('loyalty')" title="Mes points">
       <span id="loyaltyMiniIcon">🥉</span>
-      <span id="loyaltyMiniPts">0</span> pts
+      <span id="loyaltyMiniPts">0</span>
     </div>
-    <button class="dark-toggle" id="darkToggle" onclick="toggleDarkMode()" title="Mode sombre">
-      <span id="darkIcon">◑</span>
-    </button>
+
+    <!-- Lang switcher -->
     <div class="lang-switcher" id="langSwitcher">
       <button class="lang-dropdown-btn" id="langDropBtn" onclick="toggleLangMenu()">
         <span class="lang-flag" id="langFlag">🇫🇷</span>
-        <span id="langLabel">FR</span>
         <span class="lang-arrow">▼</span>
       </button>
       <div class="lang-menu" id="langMenu">
@@ -1101,16 +1403,44 @@ h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-
         <button class="lang-item" id="langAR" onclick="setLang('ar')"><span class="li-flag">🇩🇿</span> العربية</button>
       </div>
     </div>
-    <button class="tut-nav-btn" id="guideBtn" onclick="startTutorial()">Guide</button>
-    <button class="admin-nav-btn" id="adminAccessBtn" onclick="openAdminSpace()" style="display:none">
-      <span>🔐</span><span>Espace admin</span>
+
+    <!-- Dark mode -->
+    <button class="nav-icon-btn" id="darkToggle" onclick="toggleDarkMode()" title="Mode sombre">
+      <span id="darkIcon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </span>
     </button>
-    <button class="connect-btn" id="connectBtn">
-      <span id="connectIcon"></span><span id="connectText">Connexion</span>
+
+    <!-- Guide -->
+    <button class="tut-nav-btn" id="guideBtn" onclick="startTutorial()" title="Guide">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <span>Guide</span>
     </button>
-    <button class="cart-btn" id="cartBtn" onclick="nav('cart');setActive(null)">
-      🛒 Panier <span class="nav-badge" id="cartCount">0</span>
+
+    <!-- Admin -->
+    <button class="admin-nav-btn" id="adminAccessBtn" onclick="openAdminSpace()" style="display:none" title="Admin">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span>Admin</span>
     </button>
+
+    <!-- Profil -->
+    <button class="nav-icon-btn nav-profile-btn" id="connectBtn" title="Mon profil">
+      <span id="connectIcon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </span>
+      <span id="connectText" class="nav-profile-label">Connexion</span>
+    </button>
+
+    <!-- Panier -->
+    <button class="nav-cart-btn" id="cartBtn" onclick="nav('cart');setActive(null)" title="Panier">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="9" cy="21" r="1"/>
+  <circle cx="20" cy="21" r="1"/>
+  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+</svg>
+      <span class="nav-badge" id="cartCount">0</span>
+    </button>
+
     <button class="hamburger" id="hamburger" onclick="toggleMobileNav()">
       <span></span><span></span><span></span>
     </button>
@@ -1332,99 +1662,197 @@ h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-
 <!-- ══ PROFILE ══ -->
 <div class="page" id="page-profile">
   <div class="profile-wrap">
-    <!-- Hero -->
-    <div class="profile-hero" id="profileHero">
-      <div class="profile-avatar" id="profileAvatar">U</div>
-      <div class="profile-hero-info">
-        <div class="profile-name" id="profileName">Utilisateur</div>
-        <div class="profile-email" id="profileEmail">—</div>
-        <div class="profile-badges">
-          <div class="profile-badge">✓ Compte vérifié</div>
-          <div class="profile-badge" id="profileLvlBadge">🥉 Bronze</div>
+
+    <!-- HERO CARD -->
+    <div class="profile-hero-card">
+      <div class="profile-hero-bg"></div>
+      <div class="profile-hero-content">
+        <!-- Avatar avec upload -->
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar-ring">
+            <div class="profile-avatar" id="profileAvatar">
+              <img id="profileAvatarImg" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
+              <span id="profileAvatarInitials">U</span>
+            </div>
+          </div>
+          <label class="profile-avatar-edit" title="Changer la photo">
+            <input type="file" accept="image/*" onchange="handleAvatarUpload(this)" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </label>
+        </div>
+
+        <div class="profile-hero-info">
+          <div class="profile-name" id="profileName">Utilisateur</div>
+          <div class="profile-email" id="profileEmail">—</div>
+          <div class="profile-badges">
+            <div class="profile-badge-pill verified">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              Compte vérifié
+            </div>
+            <div class="profile-badge-pill level" id="profileLvlBadge">🥉 Bronze</div>
+          </div>
+        </div>
+
+        <button class="profile-logout-fab" onclick="logoutUser()" title="Déconnexion">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- STATS STRIP -->
+    <div class="profile-stats-strip">
+      <div class="profile-stat">
+        <div class="profile-stat-icon orders-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div class="profile-stat-val" id="profileOrdersCount">0</div>
+        <div class="profile-stat-lbl">Commandes</div>
+      </div>
+      <div class="profile-stat-divider"></div>
+      <div class="profile-stat">
+        <div class="profile-stat-icon pts-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="profile-stat-val" id="profilePtsCount">0</div>
+        <div class="profile-stat-lbl">Points</div>
+      </div>
+      <div class="profile-stat-divider"></div>
+      <div class="profile-stat">
+        <div class="profile-stat-icon wish-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </div>
+        <div class="profile-stat-val" id="profileWishCount">0</div>
+        <div class="profile-stat-lbl">Wishlist</div>
+      </div>
+    </div>
+
+    <!-- SECTIONS -->
+    <div class="profile-sections">
+
+      <!-- Infos perso -->
+      <div class="profile-section-card">
+        <div class="psc-header">
+          <div class="psc-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </div>
+          <div class="psc-title">Informations personnelles</div>
+        </div>
+        <div class="psc-body">
+          <div class="pf-row">
+            <div class="pf-group">
+              <label class="pf-label">Prénom</label>
+              <input class="pf-input" id="pfFirstName" type="text" placeholder="Votre prénom">
+            </div>
+            <div class="pf-group">
+              <label class="pf-label">Nom</label>
+              <input class="pf-input" id="pfLastName" type="text" placeholder="Votre nom">
+            </div>
+          </div>
+          <div class="pf-row">
+            <div class="pf-group">
+              <label class="pf-label">Email</label>
+              <input class="pf-input" id="pfEmail" type="email" placeholder="email@exemple.com">
+            </div>
+            <div class="pf-group">
+              <label class="pf-label">Téléphone</label>
+              <input class="pf-input" id="pfPhone" type="tel" placeholder="0550 123 456">
+            </div>
+          </div>
+          <div class="pf-group" style="grid-column:1/-1">
+            <label class="pf-label">Adresse de livraison</label>
+            <input class="pf-input" id="pfAddress" type="text" placeholder="Rue, quartier, wilaya…">
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:6px">
+            <button class="psc-save-btn" onclick="saveProfile()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Sauvegarder
+            </button>
+          </div>
         </div>
       </div>
+
+      <!-- Sécurité -->
+      <div class="profile-section-card">
+        <div class="psc-header">
+          <div class="psc-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div class="psc-title">Sécurité</div>
+        </div>
+        <div class="psc-body">
+          <div class="pf-row">
+            <div class="pf-group">
+              <label class="pf-label">Nouveau mot de passe</label>
+              <input class="pf-input" id="pfNewPass" type="password" placeholder="Min. 8 caractères">
+            </div>
+            <div class="pf-group">
+              <label class="pf-label">Confirmer</label>
+              <input class="pf-input" id="pfConfPass" type="password" placeholder="Répétez">
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:6px">
+            <button class="psc-save-btn outline" onclick="changePassword()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              Changer le mot de passe
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Préférences -->
+      <div class="profile-section-card">
+        <div class="psc-header">
+          <div class="psc-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </div>
+          <div class="psc-title">Préférences</div>
+        </div>
+        <div class="psc-body" style="padding-top:0">
+          <div class="pref-toggle-row">
+            <div>
+              <div class="pref-toggle-label">Alertes de prix</div>
+              <div class="pref-toggle-sub">Notifié quand un produit baisse</div>
+            </div>
+            <label class="toggle-sw"><input type="checkbox" id="prefPriceAlerts" checked><span class="sw-track"></span></label>
+          </div>
+          <div class="pref-toggle-row">
+            <div>
+              <div class="pref-toggle-label">Newsletter</div>
+              <div class="pref-toggle-sub">Offres et nouveautés exclusives</div>
+            </div>
+            <label class="toggle-sw"><input type="checkbox" id="prefNewsletter"><span class="sw-track"></span></label>
+          </div>
+          <div class="pref-toggle-row">
+            <div>
+              <div class="pref-toggle-label">Mode sombre</div>
+              <div class="pref-toggle-sub">Thème pour protéger vos yeux</div>
+            </div>
+            <label class="toggle-sw"><input type="checkbox" id="prefDarkMode" onchange="toggleDarkMode()"><span class="sw-track"></span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Commandes récentes -->
+      <div class="profile-section-card">
+        <div class="psc-header">
+          <div class="psc-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          </div>
+          <div class="psc-title">Commandes récentes</div>
+          <button class="psc-see-all" onclick="nav('orders');setActive(document.getElementById('nl-orders'))">Tout voir →</button>
+        </div>
+        <div class="psc-body" style="padding-top:0">
+          <div id="profileRecentOrders"></div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Stats -->
-    <div class="profile-cards">
-      <div class="profile-stat-card"><div class="ps-icon">📦</div><div class="ps-val" id="profileOrdersCount">0</div><div class="ps-lbl">Commandes</div></div>
-      <div class="profile-stat-card"><div class="ps-icon">⭐</div><div class="ps-val" id="profilePtsCount">0</div><div class="ps-lbl">Points fidélité</div></div>
-      <div class="profile-stat-card"><div class="ps-icon">♥</div><div class="ps-val" id="profileWishCount">0</div><div class="ps-lbl">Produits wishlist</div></div>
-    </div>
-
-    <!-- Infos personnelles -->
-    <div class="profile-section">
-      <div class="profile-section-title">👤 Informations personnelles</div>
-      <div class="profile-form-grid">
-        <div class="pf-group"><label class="pf-label">Prénom</label><input class="pf-input" id="pfFirstName" type="text" placeholder="Votre prénom"></div>
-        <div class="pf-group"><label class="pf-label">Nom</label><input class="pf-input" id="pfLastName" type="text" placeholder="Votre nom"></div>
-        <div class="pf-group"><label class="pf-label">Email</label><input class="pf-input" id="pfEmail" type="email" placeholder="email@exemple.com"></div>
-        <div class="pf-group"><label class="pf-label">Téléphone</label><input class="pf-input" id="pfPhone" type="tel" placeholder="0550 123 456"></div>
-        <div class="pf-group full"><label class="pf-label">Adresse de livraison</label><input class="pf-input" id="pfAddress" type="text" placeholder="Rue, quartier, wilaya…"></div>
-      </div>
-      <div class="profile-actions">
-        <button class="btn btn-teal" onclick="saveProfile()">💾 Sauvegarder</button>
-      </div>
-    </div>
-
-    <!-- Sécurité -->
-    <div class="profile-section">
-      <div class="profile-section-title">🔐 Sécurité</div>
-      <div class="profile-form-grid">
-        <div class="pf-group"><label class="pf-label">Nouveau mot de passe</label><input class="pf-input" id="pfNewPass" type="password" placeholder="Min. 8 caractères"></div>
-        <div class="pf-group"><label class="pf-label">Confirmer le mot de passe</label><input class="pf-input" id="pfConfPass" type="password" placeholder="Répétez le mot de passe"></div>
-      </div>
-      <div class="profile-actions">
-        <button class="btn btn-outline" onclick="changePassword()">🔑 Changer le mot de passe</button>
-      </div>
-    </div>
-
-    <!-- Préférences -->
-    <div class="profile-section">
-      <div class="profile-section-title">⚙️ Préférences</div>
-      <div class="pref-row">
-        <div><div class="pref-label">Alertes de prix</div><div class="pref-sub">Recevoir des notifications lors d'une baisse de prix</div></div>
-        <label class="toggle-sw"><input type="checkbox" id="prefPriceAlerts" checked><span class="sw-track"></span></label>
-      </div>
-      <div class="pref-row">
-        <div><div class="pref-label">Newsletter</div><div class="pref-sub">Offres exclusives et nouveautés DigitalStore</div></div>
-        <label class="toggle-sw"><input type="checkbox" id="prefNewsletter"><span class="sw-track"></span></label>
-      </div>
-      <div class="pref-row">
-        <div><div class="pref-label">Mode sombre</div><div class="pref-sub">Thème sombre pour protéger vos yeux</div></div>
-        <label class="toggle-sw"><input type="checkbox" id="prefDarkMode" onchange="toggleDarkMode()"><span class="sw-track"></span></label>
-      </div>
-    </div>
-
-    <!-- Commandes récentes -->
-    <div class="profile-section">
-      <div class="profile-section-title">🛍️ Commandes récentes</div>
-      <div id="profileRecentOrders"></div>
-    </div>
-
-    <!-- Bouton déconnexion standalone -->
-    <div style="text-align:center;padding:24px 0 40px;">
-      <button onclick="switchAccountUser()" style="
-        display:inline-flex;align-items:center;gap:10px;margin-right:10px;
-        padding:13px 24px;border-radius:10px;
-        background:var(--surface);color:var(--text);
-        border:1.5px solid var(--border);
-        font-size:14px;font-weight:700;font-family:inherit;
-        cursor:pointer;transition:all .2s;
-      " onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)';"
-         onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)';">
-        ⇄ Se connecter avec un autre compte
-      </button>
-      <button onclick="logoutUser()" style="
-        display:inline-flex;align-items:center;gap:10px;
-        padding:13px 32px;border-radius:10px;
-        background:var(--red-light);color:var(--red);
-        border:1.5px solid rgba(122,45,45,.25);
-        font-size:15px;font-weight:700;font-family:inherit;
-        cursor:pointer;transition:all .2s;
-      " onmouseover="this.style.background='var(--red)';this.style.color='#fff';"
-         onmouseout="this.style.background='var(--red-light)';this.style.color='var(--red)';">
-        ⎋ Se déconnecter
+    <!-- Bouton changer de compte -->
+    <div style="text-align:center;padding:16px 0 48px">
+      <button onclick="switchAccountUser()" class="profile-switch-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        Se connecter avec un autre compte
       </button>
     </div>
 
@@ -1667,6 +2095,44 @@ function renderTutStep(){
   }
 }
 
+
+
+function handleAvatarUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = document.getElementById('profileAvatarImg');
+    const initials = document.getElementById('profileAvatarInitials');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    initials.style.display = 'none';
+    // Sauvegarder en localStorage
+    if (loggedInUserId) {
+      localStorage.setItem('ds-avatar-' + loggedInUserId, e.target.result);
+    }
+    showToast('✓ Photo de profil mise à jour');
+  };
+  reader.readAsDataURL(file);
+}
+
+// Charger l'avatar sauvegardé (à appeler dans renderProfilePage)
+function loadSavedAvatar() {
+  if (!loggedInUserId) return;
+  const saved = localStorage.getItem('ds-avatar-' + loggedInUserId);
+  if (saved) {
+    const img = document.getElementById('profileAvatarImg');
+    const initials = document.getElementById('profileAvatarInitials');
+    if (img) { img.src = saved; img.style.display = 'block'; }
+    if (initials) initials.style.display = 'none';
+  }
+}
+
+
+
+
+
+
 function positionCard(card,elRect,pad){
   const cw=parseInt(getComputedStyle(card).width)||300;
   const ch=card.offsetHeight||280;
@@ -1829,33 +2295,34 @@ async function applyRewardEffect(reward) {
   if (!loggedInUserId) return;
  
   try {
-    const res  = await fetch('/api/promo/generate', {
-      method:  'POST',
+    const res = await fetch('/api/promo/generate', {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idClient: loggedInUserId, rewardId: reward.id })
     });
     const data = await res.json();
  
-    if (!data.success) { showToast('⚠️ Impossible de générer le code'); return; }
+    if (!data.success) { showToast('Impossible de générer le code'); return; }
  
     const code = data.code;
- 
-    // Stocker localement pour l'affichage (backup UI)
-    localStorage.setItem('ds-promo-reward', JSON.stringify({
+    const rk = loggedInUserId ? String(loggedInUserId) : null;
+     if (!rk) return; // clé unique par utilisateur
+
+    // Stocker avec la clé de l'utilisateur connecté
+    localStorage.setItem('ds-promo-reward-' + rk, JSON.stringify({
       code,
       label:  reward.label,
       expiry: data.expiry ? new Date(data.expiry).getTime() : (Date.now() + 30 * 86400000)
     }));
  
     if (reward.action === 'badge') {
-      localStorage.setItem('ds-free-delivery', '1');
+      localStorage.setItem('ds-free-delivery-' + rk, '1');
     } else if (reward.action === 'vip') {
-      localStorage.setItem('ds-vip', '1');
+      localStorage.setItem('ds-vip-' + rk, '1');
     }
  
-    showToast('🎉 Code généré : ' + code);
+    showToast('Code généré : ' + code);
  
-    // Popup avec le code
     setTimeout(() => {
       const modal = document.getElementById('rewardModal');
       if (modal) {
@@ -1866,7 +2333,7 @@ async function applyRewardEffect(reward) {
     }, 400);
  
   } catch (err) {
-    showToast('⚠️ Erreur réseau');
+    showToast('Erreur réseau');
   }
 }
 
@@ -1899,9 +2366,11 @@ function renderLoyaltyPage() {
     : 100;
 
   // Récompense active ?
-  const promoReward = JSON.parse(localStorage.getItem('ds-promo-reward') || 'null');
-  const hasFreeDelivery = localStorage.getItem('ds-free-delivery') === '1';
-  const isVip = localStorage.getItem('ds-vip') === '1';
+  // APRÈS
+const rewardKey = loggedInUserId ? String(loggedInUserId) : null;
+const promoReward = rewardKey ? JSON.parse(localStorage.getItem('ds-promo-reward-' + rewardKey) || 'null') : null;
+const hasFreeDelivery = rewardKey ? localStorage.getItem('ds-free-delivery-' + rewardKey) === '1' : false;
+const isVip = rewardKey ? localStorage.getItem('ds-vip-' + rewardKey) === '1' : false;
 
   const activeBadgesHtml = [
     promoReward && Date.now() < promoReward.expiry
@@ -2406,7 +2875,12 @@ async function loadProfileAndOrders(){
   try{
     var ordersRes=await fetch('/api/orders/'+loggedInUserId);
     var ordersData=await ordersRes.json();
-    if(ordersData.success && Array.isArray(ordersData.orders)) orderHistory=ordersData.orders;
+    if(ordersData.success && Array.isArray(ordersData.orders)) {
+  orderHistory = ordersData.orders.map(o => ({
+    ...o,
+    status: o.status || 'en préparation'
+  }));
+}
   }catch(_e){}
   await loadCartForUser();
   loadWishlistForUser();
@@ -2493,16 +2967,21 @@ async function registerUser(){
   var address=document.getElementById('regAddress').value.trim();
   if(!name||!email||!pass||!phone||!address){showToast('⚠️ Remplissez tous les champs !');return;}
   if(pass.length<8){showToast('⚠️ Mot de passe trop court (8 car. min)');return;}
-  var info=splitFullName(name);
+  
+  // Séparer prénom (premier mot) et nom (reste)
+  var parts = name.split(/\s+/).filter(Boolean);
+  var prenom = parts[0] || '';
+  var nom    = parts.slice(1).join(' ') || '';
+  
   try{
     var regRes=await apiRequest('/api/register',{
       method:'POST',
       body:JSON.stringify({
-        nom:info.nom,
-        prenom:info.prenom,
-        email:email,
-        password:pass,
-        telephone:phone
+        nom:    nom,
+        prenom: prenom,
+        email:  email,
+        password: pass,
+        telephone: phone
       })
     });
     var regData=await regRes.json();
@@ -2510,6 +2989,8 @@ async function registerUser(){
       showToast('⚠️ '+(regData.message||'Inscription impossible'));
       return;
     }
+    
+    // Auto-connexion après inscription
     var logRes=await apiRequest('/api/login',{
       method:'POST',
       body:JSON.stringify({email:email,password:pass})
@@ -2522,14 +3003,21 @@ async function registerUser(){
       return;
     }
     setAuthFromUser(logData.user, email);
-    localStorage.setItem(getProfileStorageKey(), JSON.stringify({
-      firstName:info.prenom||'',
-      lastName:info.nom||'',
-      email:email,
-      phone:phone,
-      address:address
-    }));
-    await saveProfile(true);
+    
+    // Sauvegarder l'adresse séparément via l'API profil
+    if(address && logData.user.id){
+      await apiRequest('/api/profile/'+logData.user.id,{
+        method:'PUT',
+        body:JSON.stringify({
+          nom:    nom,
+          prenom: prenom,
+          telephone: phone,
+          adresseLivraison: address,
+          wilaya: ''
+        })
+      }).catch(()=>{});
+    }
+    
     await loadProfileAndOrders();
   }catch(_e){
     showToast('⚠️ Erreur serveur, réessayez');
@@ -2599,34 +3087,57 @@ function openProfilePage(){
 function renderProfilePage(){
   if(!loggedInUserId) return;
   var saved=JSON.parse(localStorage.getItem(getProfileStorageKey())||'{}');
-  var av=document.getElementById('profileAvatar');
-  if(av) av.textContent=loggedInUser.substring(0,2).toUpperCase();
+
+  // Avatar
+  var avImg = document.getElementById('profileAvatarImg');
+  var avInit = document.getElementById('profileAvatarInitials');
+  var savedAvatar = localStorage.getItem('ds-avatar-' + loggedInUserId);
+  if(savedAvatar && avImg && avInit){
+    avImg.src = savedAvatar;
+    avImg.style.display = 'block';
+    avInit.style.display = 'none';
+  } else {
+    if(avImg) avImg.style.display = 'none';
+    if(avInit){ avInit.style.display = ''; avInit.textContent = (loggedInUser||'U').substring(0,2).toUpperCase(); }
+  }
+
+  // Nom / email
   var pn=document.getElementById('profileName');
   if(pn) pn.textContent=loggedInUser;
   var pe=document.getElementById('profileEmail');
   if(pe) pe.textContent=saved.email||loggedInUserEmail||'(non renseigné)';
+
+  // Champs formulaire
   var f=function(id,v){var e=document.getElementById(id);if(e)e.value=v||'';};
   f('pfFirstName', saved.firstName||loggedInUser);
   f('pfLastName',  saved.lastName||'');
   f('pfEmail',     saved.email||'');
   f('pfPhone',     saved.phone||'');
   f('pfAddress',   saved.address||'');
+
+  // Stats
   var t=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
   t('profileOrdersCount', orderHistory.length);
   t('profilePtsCount',    saved.loyaltyPoints||loyaltyPoints);
   t('profileWishCount',   wishlist.length);
+
+  // Niveau fidélité
   if(saved.loyaltyLevel){
     t('profileLvlBadge', '🏅 '+saved.loyaltyLevel);
-  }else{
+  } else {
     var lvl=getLoyaltyLevel();
     t('profileLvlBadge', lvl.icon+' '+lvl.name);
   }
+
+  // Dark mode toggle
   var dm=document.getElementById('prefDarkMode');
   if(dm) dm.checked=document.documentElement.getAttribute('data-theme')==='dark';
+
+  // Commandes récentes
   var ordEl=document.getElementById('profileRecentOrders');
   if(!ordEl) return;
   if(!orderHistory.length){
-    ordEl.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted)"><div style="font-size:36px;margin-bottom:10px">📦</div><p>Aucune commande pour l\'instant</p><button class="btn btn-teal" style="margin-top:14px" onclick="nav(\'catalog\');setActive(document.getElementById(\'nl-catalog\'))">Explorer le catalogue</button></div>';
+    ordEl.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted)"><p style="margin-bottom:12px">Aucune commande pour l\'instant</p><button class="btn btn-teal" style="margin-top:8px" onclick="nav(\'catalog\');setActive(document.getElementById(\'nl-catalog\'))">Explorer le catalogue</button></div>';
     return;
   }
   var sColor={'livré':'var(--green)','en préparation':'var(--teal)','en transit':'var(--orange)','annulé':'var(--red)'};
@@ -2637,6 +3148,7 @@ function renderProfilePage(){
   if(orderHistory.length>4){
     ordEl.innerHTML+='<div style="text-align:center;padding:14px 0"><button class="btn btn-outline" style="font-size:13px" onclick="nav(\'orders\');setActive(document.getElementById(\'nl-orders\'))">Voir toutes les commandes →</button></div>';
   }
+  loadSavedAvatar();
 }
 
 async function saveProfile(silent){
@@ -2682,7 +3194,7 @@ async function saveProfile(silent){
 }
 
 async function changePassword(){
-  if(!loggedInUserId){showToast('⚠️ Connectez-vous d’abord');return;}
+  if(!loggedInUserId){showToast("⚠️ Connectez-vous d'abord");return;}
   var np=(document.getElementById('pfNewPass') ||{}).value||'';
   var cp=(document.getElementById('pfConfPass')||{}).value||'';
   if(!np||!cp){showToast('⚠️ Remplissez les deux champs');return;}
@@ -2720,7 +3232,12 @@ function openPayModal() {
   const sub  = cart.reduce((s, i) => s + i.price * i.qty, 0);
  
   // ← CORRECTION : utiliser activePromoData au lieu de hardcoder 10%
-  const disc = (promoApplied && activePromoData) ? (activePromoData.reduction || 0) : 0;
+  const disc = (() => {
+  if (!promoApplied || !activePromoData) return 0;
+  if (activePromoData.reduction) return activePromoData.reduction;
+  if (activePromoData.pourcentage) return Math.round(sub * activePromoData.pourcentage / 100);
+  return 0;
+})();
  
   const tva   = Math.round((sub - disc) * 0.19);
   const total = sub - disc + tva;
@@ -2777,7 +3294,12 @@ async function processPayment() {
   btn.textContent = '⏳ Traitement en cours…';
  
   const sub   = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const disc  = (promoApplied && activePromoData) ? (activePromoData.reduction || 0) : 0;
+  const disc = (() => {
+  if (!promoApplied || !activePromoData) return 0;
+  if (activePromoData.reduction) return activePromoData.reduction;
+  if (activePromoData.pourcentage) return Math.round(sub * activePromoData.pourcentage / 100);
+  return 0;
+})();
   const tva   = Math.round((sub - disc) * 0.19);
   const total = sub - disc + tva;
  
@@ -2802,12 +3324,24 @@ async function processPayment() {
  
       // Marquer le code promo utilisé dans la table Promotion
       if (promoApplied && activePromoCode) {
-        await fetch('/api/promo/use', {
-          method:  'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: activePromoCode, idCommande: orderId })
-        }).catch(() => {});
-      }
+  await fetch('/api/promo/use', {
+    method:  'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: activePromoCode, idCommande: String(orderId).replace('DS-', '') })
+  }).catch(() => {});
+
+  // Supprimer la récompense du localStorage après utilisation
+  const rk = loggedInUserId ? String(loggedInUserId) : null;
+  if (rk) {
+    const saved = JSON.parse(localStorage.getItem('ds-promo-reward-' + rk) || 'null');
+    if (saved && saved.code === activePromoCode) {
+      localStorage.removeItem('ds-promo-reward-' + rk);
+    }
+    // Supprimer aussi livraison gratuite et VIP si le code correspondait
+    localStorage.removeItem('ds-free-delivery-' + rk);
+    localStorage.removeItem('ds-vip-' + rk);
+  }
+}
     } catch (err) {
       console.warn('Order save error:', err);
     }
@@ -3239,7 +3773,10 @@ function updateSummary() {
   const sub  = cart.reduce((s, i) => s + i.price * i.qty, 0);
   let   disc = 0;
  
-  if (promoApplied && activePromoData) disc = activePromoData.reduction || 0;
+ if (promoApplied && activePromoData) {
+  disc = activePromoData.reduction || 
+         (activePromoData.pourcentage ? Math.round(sub * activePromoData.pourcentage / 100) : 0);
+}
  
   const tva   = Math.round((sub - disc) * 0.19);
   const total = sub - disc + tva;
@@ -3482,13 +4019,11 @@ async function trackOrder(){
   result.style.display='block';
   result.innerHTML=`<div style="text-align:center;padding:40px;color:var(--muted)">🔍 Recherche en cours…</div>`;
 
-  // Chercher dans l'historique local d'abord
   const localOrder = orderHistory.find(o=>
     String(o.id).toLowerCase()===num.toLowerCase() ||
     String(o.id).replace('DS-','')===num.replace('DS-','')
   );
 
-  // Chercher aussi via l'API si connecté
   let dbOrder = null;
   if(loggedInUserId){
     try{
@@ -3519,27 +4054,32 @@ async function trackOrder(){
   result.innerHTML = buildTrackHTML(order);
   const _wilaya = order.wilaya || '';
   setTimeout(() => initMap(_wilaya), 200);
-  animateStepFill(order.status);
-  
+  setTimeout(() => animateStepFill(order.status), 150);
 }
 
 function buildTrackHTML(order){
   const statusMap = {
     'en préparation': 1,
+    'confirmé':       1,
+    'confirmed':      1,
     'expédié':        2,
+    'shipped':        2,
     'en cours':       2,
-    'en transit':     2,
+    'en transit':     3,
+    'en livraison':   3,
     'livré':          4,
+    'delivered':      4,
     'annulé':         -1
   };
-  const currentStep = statusMap[(order.status||'').toLowerCase()] ?? 1;
+  const rawStatus = (order.status || '').toLowerCase().trim();
+  const currentStep = statusMap[rawStatus] ?? 1;
 
   const stepsDef=[
-    {lbl:'Confirmée',  icon:'✓',  time:''},
-    {lbl:'Préparation',icon:'📦', time:''},
-    {lbl:'Expédié',    icon:'🚚', time:''},
-    {lbl:'En livraison',icon:'🏍️',time:''},
-    {lbl:'Livré',      icon:'🏠', time:''}
+    {lbl:'Confirmée',  icon:'✓'},
+    {lbl:'Préparation',icon:'📦'},
+    {lbl:'Expédié',    icon:'🚚'},
+    {lbl:'En livraison',icon:'🏍️'},
+    {lbl:'Livré',      icon:'🏠'}
   ];
 
   const stepsHtml = stepsDef.map((s,i)=>
@@ -3548,21 +4088,16 @@ function buildTrackHTML(order){
       <div class="step-lbl">${s.lbl}</div>
     </div>`).join('');
 
-  const fillPct = order.status?.toLowerCase()==='annulé' ? 0 : Math.round((currentStep/4)*100);
-
-  // Statut badge
   const sColor={'livré':'var(--green)','en préparation':'var(--teal)','expédié':'var(--blue)','en cours':'var(--orange)','en transit':'var(--orange)','annulé':'var(--red)'};
   const sBg={'livré':'var(--green-light)','en préparation':'var(--teal-light)','expédié':'var(--blue-light)','en cours':'var(--orange-light)','en transit':'var(--orange-light)','annulé':'var(--red-light)'};
-  const statusKey=(order.status||'').toLowerCase();
+  const statusKey = rawStatus;
 
-  // Produits
   const itemsHtml = order.items?.map(i=>
     `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
       <span>${i.name} × ${i.qty}</span>
       <span style="font-weight:700;color:var(--teal)">${(i.price*i.qty).toLocaleString('fr-DZ')} DA</span>
     </div>`).join('') || '';
 
-  // Timeline selon statut réel
   const tlSteps=[
     {icon:'✓',  cls:'tl-done',    title:'Commande confirmée',      desc:'Paiement vérifié et commande enregistrée'},
     {icon:'📦', cls:currentStep>=1?'tl-done':'tl-pending',   title:'Préparation en cours', desc:'Votre colis est en cours de préparation'},
@@ -3589,7 +4124,6 @@ function buildTrackHTML(order){
           <span style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--teal)">${order.total?.toLocaleString('fr-DZ')||'—'} DA</span>
         </div>
       </div>
-
       ${statusKey!=='annulé'?`
       <div class="steps" id="stepsContainer">
         <div class="step-fill" id="stepFill" style="width:0%"></div>
@@ -3598,7 +4132,6 @@ function buildTrackHTML(order){
       <div style="text-align:center;padding:16px;background:var(--red-light);border-radius:var(--r);color:var(--red);font-weight:600;margin-bottom:16px">
         ✗ Cette commande a été annulée
       </div>`}
-
       ${itemsHtml?`
       <div style="background:var(--bg);border-radius:var(--rs);padding:14px;margin-top:8px">
         <div style="font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Produits commandés</div>
@@ -3608,7 +4141,6 @@ function buildTrackHTML(order){
         </div>
       </div>`:''}
     </div>
-
     ${statusKey!=='annulé'?`
     <div class="track-order-card">
       <div class="map-section">
@@ -3627,7 +4159,6 @@ function buildTrackHTML(order){
         </div>
       </div>
     </div>`:''}
-
     <div class="track-order-card">
       <h3 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:20px">Historique</h3>
       <div class="timeline">
@@ -3646,7 +4177,7 @@ function buildTrackHTML(order){
 function animateStepFill(status){
   const f=document.getElementById('stepFill');
   if(!f) return;
-  const pcts={'en préparation':25,'expédié':50,'en cours':50,'en transit':50,'livré':100};
+  const pcts={'en préparation':25,'expédié':50,'en cours':50,'en transit':75,'en livraison':75,'livré':100};
   const pct=pcts[(status||'').toLowerCase()]||25;
   setTimeout(()=>f.style.width=pct+'%',100);
 }

@@ -1254,16 +1254,16 @@ app.post("/api/promo/verify", async (req, res) => {
 ========================= */
 app.put("/api/promo/use", async (req, res) => {
   const { code, idCommande } = req.body;
+  console.log("PROMO USE →", code, idCommande); // ← ajouter
   if (!code) return res.json({ success: false });
   try {
-    await query(
+    const result = await query(
       `UPDATE promotion
-       SET estUtilise      = 1,
-           dateUtilisation = NOW(),
-           idCommandeUsed  = ?
+       SET estUtilise = 1, dateUtilisation = NOW(), idCommandeUsed = ?
        WHERE codePromo = UPPER(?) AND estUtilise = 0`,
       [idCommande || null, code]
     );
+    console.log("PROMO USE affected:", result.affectedRows); // ← ajouter
     res.json({ success: true });
   } catch (err) {
     res.json({ success: false });
@@ -1806,34 +1806,43 @@ app.put("/api/admin/livraisons/:id/statut", async (req, res) => {
     return res.json({ success: false, message: "Statut invalide" });
 
   try {
-    if (statut === "Livré") {
-  // Confirmer le paiement livraison si COD
-  const cmdRows = await query(
-    "SELECT idCommande FROM livraison WHERE idLivraison = ?", [req.params.id]
-  );
-  if (cmdRows.length) {
-    const idCmd = cmdRows[0].idCommande;
-    const payRows = await query(
-      "SELECT idPaiement FROM paiement WHERE idCommande = ? AND typePaiement = 'cod'", [idCmd]
+    // Toujours mettre à jour le statut de la livraison
+    await query(
+      "UPDATE livraison SET statut=? WHERE idLivraison=?",
+      [statut, req.params.id]
     );
-    if (payRows.length) {
+
+    // Si livré → dateEffective + confirmer paiement COD
+    if (statut === "Livré") {
       await query(
-        "UPDATE PaiementLivraison SET confirmeParLivreur = 1 WHERE idPaiement = ?",
-        [payRows[0].idPaiement]
+        "UPDATE livraison SET dateEffective=NOW() WHERE idLivraison=?",
+        [req.params.id]
       );
-      await query(
-        "UPDATE paiement SET statut = 'payé' WHERE idPaiement = ?",
-        [payRows[0].idPaiement]
+
+      const cmdRows = await query(
+        "SELECT idCommande FROM livraison WHERE idLivraison = ?",
+        [req.params.id]
       );
-    }
-  }
-} else {
-      await query(
-        "UPDATE livraison SET statut=? WHERE idLivraison=?",
-        [statut, req.params.id]
-      );
+      if (cmdRows.length) {
+        const idCmd = cmdRows[0].idCommande;
+        const payRows = await query(
+          "SELECT idPaiement FROM paiement WHERE idCommande = ? AND typePaiement = 'cod'",
+          [idCmd]
+        );
+        if (payRows.length) {
+          await query(
+            "UPDATE PaiementLivraison SET confirmeParLivreur = 1 WHERE idPaiement = ?",
+            [payRows[0].idPaiement]
+          );
+          await query(
+            "UPDATE paiement SET statut = 'payé' WHERE idPaiement = ?",
+            [payRows[0].idPaiement]
+          );
+        }
+      }
     }
 
+    // Mettre à jour le statut de la commande en cascade
     const rows = await query(
       "SELECT idCommande FROM livraison WHERE idLivraison = ?",
       [req.params.id]
