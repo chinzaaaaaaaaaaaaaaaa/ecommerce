@@ -1218,7 +1218,276 @@ h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-
 }
 
 
+/* ════ RESPONSIVE COMPLET ════ */
 
+/* ── Téléphone (≤480px) ── */
+@media (max-width: 480px) {
+
+  /* NAV */
+  nav {
+    padding: 0 12px;
+    height: 56px;
+    gap: 4px;
+  }
+  .logo-text { font-size: 16px; }
+  .nav-right { gap: 4px; }
+  .nav-icon-btn { width: 32px; height: 32px; }
+  .nav-cart-btn { width: 36px; height: 36px; }
+  .tut-nav-btn  { display: none; }
+  .lang-switcher { display: none; }
+
+  /* HERO */
+  .hero {
+    padding: 24px 16px 20px;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  h1 {
+    font-size: 28px;
+    letter-spacing: -1px;
+    margin-bottom: 12px;
+  }
+  .hero-sub  { font-size: 14px; margin-bottom: 20px; }
+  .hero-ctas { flex-direction: column; gap: 8px; }
+  .hero-ctas .btn { width: 100%; justify-content: center; }
+  .hero-panel { display: none; }
+
+  /* STATS */
+  .stats-strip { grid-template-columns: repeat(2,1fr); }
+  .stat { padding: 16px 12px; }
+  .stat-num { font-size: 22px; }
+  .stat-lbl { font-size: 11px; }
+
+  /* DEALS BANNER */
+  .deals-banner {
+    margin: 0 12px 24px;
+    padding: 20px 16px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .deals-title { font-size: 20px; }
+  .deals-timer { justify-content: center; flex-wrap: wrap; gap: 8px; }
+  .timer-block { min-width: 52px; padding: 10px 12px; }
+  .timer-num  { font-size: 20px; }
+
+  /* CATEGORIES GRID */
+  .cats-grid { grid-template-columns: repeat(2,1fr); gap: 8px; }
+  .cat-card  { padding: 16px 12px; }
+  .cat-icon  { font-size: 24px; }
+  .cat-name  { font-size: 12px; }
+
+  /* SECTION */
+  .section { padding: 24px 12px; }
+  h2 { font-size: 20px; }
+
+  /* CATALOG */
+  .catalog-wrap {
+    grid-template-columns: 1fr;
+    padding: 12px;
+    gap: 12px;
+  }
+  .sidebar { display: none; } /* cachée sur mobile */
+  .products-grid {
+    grid-template-columns: repeat(2,1fr);
+    gap: 8px;
+  }
+  .prod-name  { font-size: 13px; }
+  .prod-price { font-size: 15px; }
+  .prod-specs { display: none; } /* trop long sur mobile */
+
+  /* FILTRE MOBILE — bouton pour ouvrir sidebar */
+  .mobile-filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 12px;
+    font-family: inherit;
+    color: var(--text);
+  }
+
+  /* DETAIL PAGE */
+  .detail-wrap { padding: 16px 12px; }
+  .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .detail-title   { font-size: 20px; }
+  .price-big      { font-size: 26px; }
+  .specs-grid     { grid-template-columns: 1fr; }
+  .detail-actions { flex-direction: column; }
+  .btn-cart-lg    { width: 100%; }
+  .btn-wish-lg    { width: 100%; height: 46px; }
+  .trust-row      { flex-direction: column; gap: 6px; }
+  .reco-grid      { grid-template-columns: repeat(2,1fr); gap: 8px; }
+
+  /* CART */
+  .cart-wrap {
+    grid-template-columns: 1fr;
+    padding: 16px 12px;
+    gap: 16px;
+  }
+  .cart-item {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px;
+  }
+  .ci-img   { width: 52px; height: 52px; }
+  .ci-price { min-width: auto; font-size: 14px; }
+  .summary-box { position: static; }
+
+  /* WISHLIST */
+  .wishlist-page  { padding: 16px 12px; }
+  .wishlist-grid  { grid-template-columns: repeat(2,1fr); gap: 8px; }
+
+  /* COMPARE */
+  .compare-table th,
+  .compare-table td { padding: 10px 8px; font-size: 12px; }
+
+  /* ORDERS */
+  .orders-wrap { padding: 16px 12px; }
+  .order-history-card { padding: 16px; }
+
+  /* LOYALTY */
+  .loyalty-wrap   { padding: 16px 12px; }
+  .loyalty-levels { grid-template-columns: repeat(2,1fr); }
+  .rewards-grid   { grid-template-columns: 1fr; }
+  .loyalty-pts-big { font-size: 48px; }
+
+  /* TRACKING */
+  #page-track > div { padding: 20px 12px; }
+  .track-search { flex-direction: column; gap: 8px; }
+  .track-in  { width: 100%; }
+  .track-go  { width: 100%; text-align: center; }
+  .steps     { gap: 0; }
+  .step-lbl  { font-size: 10px; max-width: 56px; }
+  .map-container { height: 260px; }
+
+  /* PROFILE */
+  .profile-wrap         { padding: 16px 12px 40px; }
+  .profile-hero-content { padding: 20px 16px; flex-direction: column; text-align: center; }
+  .profile-stats-strip  { flex-direction: column; }
+  .profile-stat-divider { width: 100%; height: 1px; }
+  .pf-row               { grid-template-columns: 1fr; }
+  .profile-sections     { gap: 10px; }
+
+  /* PAYMENT MODAL */
+  .pay-modal  { border-radius: 12px 12px 0 0; }
+  .pay-body   { padding: 16px; }
+  .pay-header { padding: 16px 16px 12px; }
+  .pay-methods { gap: 6px; }
+  .pay-method-btn {
+    padding: 8px 4px;
+    font-size: 11px;
+    min-width: 70px;
+  }
+  .pay-method-icon { font-size: 18px; }
+  .pay-row { grid-template-columns: 1fr; gap: 8px; }
+
+  /* MODAL GÉNÉRIQUE */
+  .modal {
+    padding: 20px 16px;
+    border-radius: 14px 14px 0 0;
+    margin-bottom: 0;
+    max-height: 85vh;
+  }
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  /* AUTH MODAL */
+  .auth-modal {
+    padding: 24px 16px;
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    margin-bottom: 0;
+  }
+  .auth-overlay { align-items: flex-end; }
+
+  /* COMPARE BAR */
+  #compareBar { padding: 10px 12px; gap: 10px; }
+  .cb-slots   { display: none; }
+
+  /* TOAST */
+  #toast {
+    width: 90vw;
+    font-size: 12.5px;
+    padding: 10px 16px;
+    bottom: 16px;
+  }
+
+  /* PRICE DROP NOTIF */
+  #priceDropNotif {
+    right: 12px;
+    left: 12px;
+    max-width: 100%;
+    bottom: 70px;
+  }
+}
+
+/* ── Tablette (481px → 768px) ── */
+@media (min-width: 481px) and (max-width: 768px) {
+
+  /* NAV */
+  nav { padding: 0 16px; }
+  .nav-links  { display: none; }
+  .hamburger  { display: flex; }
+  .tut-nav-btn { display: none; }
+
+  /* HERO */
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 32px 20px 24px;
+    gap: 24px;
+  }
+  h1 { font-size: 36px; }
+  .hero-panel { display: none; }
+
+  /* CATALOG */
+  .catalog-wrap { grid-template-columns: 1fr; padding: 16px; }
+  .sidebar      { display: none; }
+  .products-grid { grid-template-columns: repeat(2,1fr); gap: 10px; }
+
+  /* DETAIL */
+  .detail-grid { grid-template-columns: 1fr; gap: 24px; }
+
+  /* CART */
+  .cart-wrap { grid-template-columns: 1fr; padding: 20px 16px; }
+
+  /* LOYALTY */
+  .loyalty-levels { grid-template-columns: repeat(2,1fr); }
+
+  /* PROFILE */
+  .profile-hero-content { flex-direction: column; text-align: center; }
+  .pf-row { grid-template-columns: 1fr; }
+}
+
+/* ── Bouton filtre mobile — visible uniquement sur mobile ── */
+.mobile-filter-btn { display: none; }
+@media (max-width: 768px) {
+  .mobile-filter-btn { display: flex; }
+}
+
+/* ── Pay modal en bas sur mobile ── */
+@media (max-width: 600px) {
+  .pay-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .pay-modal {
+    border-radius: 16px 16px 0 0;
+    max-height: 92vh;
+    width: 100%;
+  }
+}
 
 
 </style>
@@ -1670,7 +1939,7 @@ h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-
             </div>
           </div>
           <label class="profile-avatar-edit" title="Changer la photo">
-            <input type="file" accept="image/*" onchange="handleAvatarUpload(this)" style="display:none">
+  <input type="file" accept="image/*" id="avatarFileInput" style="display:none">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </label>
         </div>
@@ -1964,10 +2233,64 @@ async function loadProducts() {
   } catch (err) {
     console.error('loadProducts error:', err);
   }
+  await loadCategories();
   renderHome();
   renderProducts();
   // ← PLUS d'appel à loadCartForUser() ici
 }
+
+
+
+async function loadCategories() {
+  try {
+    const res  = await fetch('/api/categories');
+    const data = await res.json();
+    if (!data.success) return;
+
+    const cats = data.categories;
+    
+    // Mettre à jour la sidebar
+    const sidebar = document.querySelector('.sb-card:first-child');
+    if (!sidebar) return;
+
+    sidebar.innerHTML = `
+      <div class="sb-title">Catégorie</div>
+      <div class="filt-opt">
+        <input type="radio" name="cat" id="c-all" checked 
+               onchange="filterCat('Tout')">
+        <label for="c-all">Tout 
+          <span class="cnt">(${cats.reduce((s,c) => s + (c.nbProduits||0), 0)})</span>
+        </label>
+      </div>
+      ${cats.map((c, i) => `
+        <div class="filt-opt">
+          <input type="radio" name="cat" id="c-${i}" 
+                 onchange="filterCat('${c.nom}')">
+          <label for="c-${i}">${c.icone || ''} ${c.nom} 
+            <span class="cnt">(${c.nbProduits || 0})</span>
+          </label>
+        </div>`).join('')}
+    `;
+
+    // Mettre à jour aussi la grille des catégories sur la home
+    const catsGrid = document.querySelector('.cats-grid');
+    if (catsGrid) {
+      catsGrid.innerHTML = cats.map(c => `
+        <div class="cat-card" onclick="filterCat('${c.nom}');nav('catalog')">
+          <div class="cat-icon">${c.icone || '📦'}</div>
+          <div class="cat-name">${c.nom}</div>
+          <div class="cat-count">${c.nbProduits || 0} produit${(c.nbProduits||0) > 1 ? 's' : ''}</div>
+        </div>`).join('');
+    }
+
+  } catch(e) {
+    console.warn('loadCategories error:', e);
+  }
+}
+
+
+
+
 
 cart=[],wishlist=[],compareList=[];
 let currentProduct=null,currentQty=1,currentCatFilter='Tout',currentRating=0,promoApplied=false;activePromoCode = null;activePromoData = null;
@@ -2104,17 +2427,27 @@ function renderTutStep(){
 function handleAvatarUpload(input) {
   const file = input.files[0];
   if (!file) return;
+  
+  if (!loggedInUserId) {
+    showToast('⚠️ Connectez-vous pour changer la photo');
+    return;
+  }
+  
   const reader = new FileReader();
   reader.onload = function(e) {
+    const data = e.target.result;
+    const key = 'ds-avatar-' + loggedInUserId;
+    
+    localStorage.setItem(key, data);
+    
     const img = document.getElementById('profileAvatarImg');
     const initials = document.getElementById('profileAvatarInitials');
-    img.src = e.target.result;
-    img.style.display = 'block';
-    initials.style.display = 'none';
-    // Sauvegarder en localStorage
-    if (loggedInUserId) {
-      localStorage.setItem('ds-avatar-' + loggedInUserId, e.target.result);
+    if (img && initials) {
+      img.src = data;
+      img.style.display = 'block';
+      initials.style.display = 'none';
     }
+    
     _syncBtn();
     showToast('✓ Photo de profil mise à jour');
   };
@@ -2123,15 +2456,23 @@ function handleAvatarUpload(input) {
 
 // Charger l'avatar sauvegardé (à appeler dans renderProfilePage)
 function loadSavedAvatar() {
-  if (!loggedInUserId) return;
-  const saved = localStorage.getItem('ds-avatar-' + loggedInUserId);
+  const uid = loggedInUserId;
+  if (!uid) return;
+  const key = 'ds-avatar-' + uid;
+  console.log('Avatar key:', key);
+console.log('Avatar saved:', localStorage.getItem(key) ? 'OUI' : 'NON');
+  const saved = localStorage.getItem(key);
+  
   const img = document.getElementById('profileAvatarImg');
   const initials = document.getElementById('profileAvatarInitials');
-  if (saved && img && initials) {
+  
+  if (!img || !initials) return;
+  
+  if (saved) {
     img.src = saved;
     img.style.display = 'block';
     initials.style.display = 'none';
-  } else if (img && initials) {
+  } else {
     img.src = '';
     img.style.display = 'none';
     initials.style.display = '';
@@ -2615,27 +2956,81 @@ function showPriceDropNotif(p){
 /* ═══════════════════════════════════════════
    RECOMMENDATIONS
 ═══════════════════════════════════════════ */
-function renderRecommendations(p){
-  const s=document.getElementById('recoSection');
-  if(!s)return;
-  let recs=products.filter(pr=>pr.id!==p.id&&pr.cat===p.cat).sort((a,b)=>b.rating-a.rating).slice(0,3);
-  if(recs.length<3){
-    const extras=viewedProducts.slice(-6).reverse().map(id=>products.find(pr=>pr.id===id)).filter(pr=>pr&&pr.id!==p.id&&!recs.find(r=>r.id===pr.id)).slice(0,3-recs.length);
-    recs=[...recs,...extras];
+async function renderRecommendations(p) {
+  const s = document.getElementById('recoSection');
+  if (!s) return;
+
+  // Lire la config depuis le serveur
+  let modules = [];
+  try {
+    const res = await fetch('/api/reco/config');
+    const data = await res.json();
+    modules = data.config || [];
+  } catch(e) {
+    // Fallback localStorage si serveur indisponible
+    modules = JSON.parse(localStorage.getItem('ds_reco') || '[]');
   }
-  if(!recs.length){s.style.display='none';return;}
-  s.style.display='block';
-  s.innerHTML=`
+
+  // Si aucun module configuré → comportement par défaut (tout actif)
+  const toutDesactive = modules.length > 0 && modules.every(m => !m.active);
+  if (toutDesactive) {
+    s.style.display = 'none';
+    return;
+  }
+
+  // Vérifier quels modules sont actifs
+  const popActif = modules.length === 0 || 
+    modules.some(m => m.active && 
+      (m.name.toLowerCase().includes('populaire') || 
+       m.name.toLowerCase().includes('catégorie') ||
+       m.name.toLowerCase().includes('categorie')));
+
+  const histoActif = modules.some(m => m.active && 
+    (m.name.toLowerCase().includes('historique') || 
+     m.name.toLowerCase().includes('achat')));
+
+  let recs = [];
+
+  // Module "produits populaires dans la catégorie"
+  if (popActif) {
+    recs = products
+      .filter(pr => pr.id !== p.id && pr.cat === p.cat)
+      .sort((a, b) => b.rating - a.rating)
+      .slice(0, 3);
+  }
+
+  // Module "historique de navigation"
+  if (histoActif && recs.length < 3) {
+    const extras = viewedProducts
+      .slice(-6).reverse()
+      .map(id => products.find(pr => pr.id === id))
+      .filter(pr => pr && pr.id !== p.id && !recs.find(r => r.id === pr.id))
+      .slice(0, 3 - recs.length);
+    recs = [...recs, ...extras];
+  }
+
+  if (!recs.length) {
+    s.style.display = 'none';
+    return;
+  }
+
+  s.style.display = 'block';
+  s.innerHTML = `
     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px">
-      <h3 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.5px">💡 Vous aimerez aussi</h3>
+      <h3 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.5px">
+        💡 Vous aimerez aussi
+      </h3>
       <span style="font-size:12px;color:var(--muted)">Basé sur vos préférences</span>
     </div>
     <div class="reco-grid">
-      ${recs.map(r=>`
+      ${recs.map(r => `
         <div class="reco-card" onclick="showDetail(${r.id})">
-          <img src="${r.img}" alt="${r.name}" onerror="this.src='https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&q=80'" style="display:block">
+          <img src="${r.img}" alt="${r.name}" 
+               onerror="this.src='https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&q=80'"
+               style="display:block">
           <div class="reco-body">
-            <div style="font-size:10px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">${r.cat}</div>
+            <div style="font-size:10px;font-weight:700;color:var(--teal);text-transform:uppercase;
+                        letter-spacing:.5px;margin-bottom:3px">${r.cat}</div>
             <div class="reco-name">${r.name}</div>
             <div class="reco-footer">
               <span class="reco-price">${r.price.toLocaleString('fr-DZ')} DA</span>
@@ -2643,8 +3038,7 @@ function renderRecommendations(p){
             </div>
           </div>
         </div>`).join('')}
-    </div>
-  `;
+    </div>`;
 }
 
 /* ═══════════════════════════════════════════
@@ -2729,6 +3123,8 @@ document.addEventListener('DOMContentLoaded', function(){
     if(loggedInUser){ openProfilePage(); } else { openAuthModal(); }
   });
   restoreAuthSession();
+
+  
 });
 
 function apiRequest(url, options){
@@ -3454,14 +3850,40 @@ window.addEventListener('popstate', function(e) {
     if (el) el.classList.add('active');
   }
 });
-
-// Initialiser l'état au chargement
+//initialiser
 window.addEventListener('DOMContentLoaded', function() {
   const params = new URLSearchParams(window.location.search);
   const page = params.get('p') || 'home';
-  // Remplacer l'état initial sans créer d'entrée
   history.replaceState({ page }, '', '?p=' + page);
   if (page !== 'home') nav(page, false);
+
+  const avatarInput = document.getElementById('avatarFileInput');
+  if (avatarInput) {
+    avatarInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (!file) return;
+      if (!loggedInUserId) {
+        showToast('⚠️ Connectez-vous pour changer la photo');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const data = ev.target.result;
+        localStorage.setItem('ds-avatar-' + loggedInUserId, data);
+        const img = document.getElementById('profileAvatarImg');
+        const initials = document.getElementById('profileAvatarInitials');
+        if (img && initials) {
+          img.src = data;
+          img.style.display = 'block';
+          initials.style.display = 'none';
+        }
+        _syncBtn();
+        showToast('✓ Photo de profil mise à jour');
+      };
+      reader.readAsDataURL(file);
+      this.value = '';
+    });
+  }
 });
 
 

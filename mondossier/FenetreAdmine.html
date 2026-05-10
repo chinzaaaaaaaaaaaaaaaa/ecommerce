@@ -1464,6 +1464,219 @@
         grid-template-columns: 1fr
       }
     }
+
+
+#donutCanvas {
+  width: 90px !important;
+  height: 90px !important;
+  display: block;
+  flex-shrink: 0;
+}
+
+
+/* ════ RESPONSIVE ADMIN ════ */
+
+/* ── Hamburger mobile ── */
+.mobile-menu-btn {
+  display: none;
+  width: 38px; height: 38px;
+  border-radius: var(--rs);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all var(--t);
+  flex-shrink: 0;
+}
+.mobile-menu-btn:hover { background: var(--bg); border-color: var(--teal); color: var(--teal); }
+
+/* Sidebar overlay mobile */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 299;
+  backdrop-filter: blur(2px);
+}
+.sidebar-overlay.open { display: block; }
+
+/* ── Tablette (≤900px) ── */
+@media (max-width: 900px) {
+
+  /* Sidebar en drawer */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 100vh;
+    z-index: 300;
+    transform: translateX(-100%);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+    width: 260px;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0,0,0,.4);
+  }
+
+  /* Bouton hamburger visible */
+  .mobile-menu-btn { display: flex; }
+
+  /* Topbar ajustée */
+  .topbar { padding: 0 14px; }
+  .topbar-pill { display: none; }
+  .topbar-title { font-size: 15px; }
+  .topbar-right { gap: 5px; }
+
+  /* Cacher certains boutons sur tablette */
+  .topbar-btn:not(.guide-btn) { 
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+  .topbar-btn span { display: none; }
+  .topbar-btn i { margin: 0; }
+
+  /* Main prend tout l'espace */
+  .main { width: 100%; }
+
+  /* Content padding réduit */
+  .content { padding: 16px; }
+
+  /* Stats grid 2 colonnes */
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+  /* Grid 2 colonnes → 1 colonne */
+  .grid2 { grid-template-columns: 1fr; gap: 12px; }
+
+  /* Box padding réduit */
+  .box { padding: 14px; }
+  .box-head { margin-bottom: 12px; }
+
+  /* Formulaires */
+  .form-row { grid-template-columns: 1fr; gap: 10px; }
+
+  /* Table scrollable */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 500px; }
+  th, td { padding: 8px 10px; font-size: 12px; }
+
+  /* Modal full width */
+  .modal { padding: 20px 16px; max-width: 95vw; }
+  .modal-overlay { padding: 16px; }
+}
+
+/* ── Mobile (≤600px) ── */
+@media (max-width: 600px) {
+
+  /* Topbar compact */
+  .topbar { height: 52px; padding: 0 12px; }
+  .topbar-title { font-size: 14px; }
+
+  /* Cacher lang + sync sur très petit écran */
+  .lang-sel { display: none; }
+  .dark-btn { width: 32px; height: 32px; font-size: 14px; }
+
+  /* Guide btn petit */
+  .guide-btn { padding: 6px 10px !important; font-size: 11px !important; }
+  .guide-btn span { display: none; }
+
+  /* Content */
+  .content { padding: 12px; }
+
+  /* Stats 2 colonnes compactes */
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat-card { padding: 12px 14px; }
+  .stat-val { font-size: 20px; }
+  .stat-lbl { font-size: 10.5px; }
+  .stat-icon { width: 32px; height: 32px; font-size: 14px; margin-bottom: 8px; }
+
+  /* Box */
+  .box { padding: 12px; border-radius: 10px; }
+  .box-title { font-size: 14px; }
+
+  /* Donut responsive */
+  .donut-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+  #donutCanvas { width: 80px !important; height: 80px !important; }
+
+  /* Chart bars */
+  .chart-bars { height: 80px; gap: 4px; }
+  .chart-bar-val { font-size: 8px; }
+
+  /* Table encore plus compacte */
+  table { min-width: 420px; font-size: 11.5px; }
+  th { font-size: 10px; padding: 7px 8px; }
+  td { padding: 8px 8px; }
+
+  /* Boutons d'action dans tableau */
+  .td-actions { gap: 3px; }
+  .btn-sm { padding: 4px 8px; font-size: 11px; }
+
+  /* Badges */
+  .badge { font-size: 10px; padding: 2px 7px; }
+
+  /* Avatar */
+  .avatar { width: 28px; height: 28px; font-size: 11px; }
+
+  /* Modal en bas de l'écran */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal {
+    border-radius: 16px 16px 0 0;
+    max-height: 88vh;
+    width: 100%;
+    max-width: 100%;
+    padding: 20px 16px 32px;
+  }
+
+  /* Promo modal */
+  #promoModalOverlay {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+  #promoModalOverlay .modal {
+    border-radius: 16px 16px 0 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Toast */
+  #atoast {
+    width: 90vw;
+    font-size: 12px;
+    padding: 10px 14px;
+    bottom: 12px;
+    white-space: normal;
+  }
+
+  /* Points tracker */
+  .track-steps { overflow-x: auto; padding-bottom: 6px; }
+  .ts-step { min-width: 55px; }
+  .ts-dot { width: 24px; height: 24px; font-size: 10px; }
+  .ts-lbl { font-size: 9px; max-width: 52px; }
+
+  /* Reco modules */
+  .reco-module { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .tog-wrap { width: 100%; justify-content: flex-end; }
+
+  /* Login card */
+  .login-card { padding: 28px 20px; }
+  .login-brand { font-size: 22px; }
+}
+
+/* ── Très petit (≤380px) ── */
+@media (max-width: 380px) {
+  .stats-row { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .stat-val { font-size: 18px; }
+  .topbar-title { font-size: 13px; }
+  .guide-btn { display: none; }
+}
+
   </style>
 </head>
 
@@ -1496,7 +1709,8 @@
   <div id="appShell" style="display:none;flex-direction:row;width:100%;min-height:100vh">
 
     <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <aside class="sidebar" id="adminSidebar">
       <div class="sb-head">
         <img src="images/logo.png" alt="Logo" class="sb-logo" onerror="this.style.display='none'">
         <div class="sb-brand">Digital<span>Store</span></div>
@@ -1544,6 +1758,7 @@
     <!-- MAIN -->
     <div class="main">
       <div class="topbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()" id="mobileMenuBtn">☰</button>
         <div class="topbar-title" id="topbarTitle">Tableau de bord</div>
         <div class="topbar-right">
           <div class="topbar-pill"><i class="fas fa-circle" style="font-size:7px;color:var(--teal)"></i> <span
@@ -2571,7 +2786,7 @@ document.getElementById('sbUsers').textContent   = (users || []).length;
         // Ajouter stats CA et nouveaux clients dans les cartes
         
 
-        drawDonut();
+        setTimeout(drawDonut, 100);
         document.getElementById('dashOrdersTable').innerHTML = `
     <thead><tr><th>${t('thID')}</th><th>${t('thClient')}</th><th>${t('thItems')}</th><th>${t('thTotal')}</th><th>${t('thStatus')}</th></tr></thead>
     <tbody>${orders.slice(0, 5).map(o => `<tr>
@@ -2599,23 +2814,82 @@ document.getElementById('sbUsers').textContent   = (users || []).length;
         console.error('Erreur chargement dashboard:', e);
       }
     }
-    function drawDonut() {
-      const canvas = document.getElementById('donutCanvas'); if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const cats = [...new Set(products.map(p => p.cat))];
-      const colors = ['#497b89', '#6b7280', '#9ca3af', '#e05a8a', '#3b82f6', '#8b5cf6'];
-      let start = -Math.PI / 2;
-      ctx.clearRect(0, 0, 90, 90);
-      cats.forEach((cat, i) => {
-        const count = products.filter(p => p.cat === cat).length;
-        const angle = (count / Math.max(products.length, 1)) * 2 * Math.PI;
-        ctx.beginPath(); ctx.moveTo(45, 45); ctx.arc(45, 45, 40, start, start + angle); ctx.closePath();
-        ctx.fillStyle = colors[i % colors.length]; ctx.fill(); start += angle;
-      });
-      ctx.beginPath(); ctx.arc(45, 45, 22, 0, 2 * Math.PI); ctx.fillStyle = isDark ? '#1a2535' : '#fff'; ctx.fill();
-      document.getElementById('donutLegend').innerHTML = cats.map((cat, i) => `
-    <div class="donut-legend-item"><div class="donut-dot" style="background:${colors[i % colors.length]}"></div><span>${cat} (${products.filter(p => p.cat === cat).length})</span></div>`).join('');
-    }
+
+
+   function drawDonut() {
+  const canvas = document.getElementById('donutCanvas');
+  if (!canvas) return;
+
+  if (!products || !products.length) {
+    setTimeout(drawDonut, 500);
+    return;
+  }
+
+  const SIZE = 90;
+  const dpr  = window.devicePixelRatio || 1;
+  canvas.width  = SIZE * dpr;
+  canvas.height = SIZE * dpr;
+  canvas.style.width  = SIZE + 'px';
+  canvas.style.height = SIZE + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const cx = SIZE / 2, cy = SIZE / 2, R = SIZE / 2 - 2;
+  const colors = ['#497b89','#e05a8a','#3b82f6','#f59e0b','#8b5cf6','#10b981','#6b7280','#9ca3af'];
+
+  // ── Couleur du trou : lire depuis le DOM, pas depuis CSS variables ──
+  const holeColor = isDark ? '#1a2535' : '#ffffff';
+
+  const cats  = [...new Set(products.map(p => p.cat).filter(Boolean))];
+  const total = Math.max(products.length, 1);
+
+  ctx.clearRect(0, 0, SIZE, SIZE);
+
+  if (!cats.length) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+    ctx.fillStyle = '#e2e2df';
+    ctx.fill();
+  } else {
+    let start = -Math.PI / 2;
+    cats.forEach((cat, i) => {
+      const count = products.filter(p => p.cat === cat).length;
+      const angle = (count / total) * 2 * Math.PI;
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, R, start, start + angle);
+      ctx.closePath();
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.fill();
+
+      // Séparateur blanc/foncé entre secteurs
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, R, start, start + angle);
+      ctx.closePath();
+      ctx.strokeStyle = holeColor;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      start += angle;
+    });
+  }
+
+  // Trou central
+  ctx.beginPath();
+  ctx.arc(cx, cy, SIZE * 0.24, 0, 2 * Math.PI);
+  ctx.fillStyle = holeColor;
+  ctx.fill();
+
+  // Légende
+  document.getElementById('donutLegend').innerHTML = cats.map((cat, i) => `
+    <div class="donut-legend-item">
+      <div class="donut-dot" style="background:${colors[i % colors.length]}"></div>
+      <span style="font-size:12px">${cat} <strong>(${products.filter(p => p.cat === cat).length})</strong></span>
+    </div>`).join('');
+}
 
     async function renderProducts() {
       try {
@@ -3562,7 +3836,24 @@ async function renderDelivery() {
       ${p.badge === 'promo' ? `<div style="margin-top:7px"><span class="badge badge-red">PROMO</span></div>` : ''}
     </div>`).join('')}</div>`;
     }
-    function toggleReco(i) { recoModules[i].active = !recoModules[i].active; saveData('ds_reco', recoModules); renderRecommendations(); toast(recoModules[i].active ? t('moduleEnabled') : t('moduleDisabled')); }
+    async function toggleReco(i) {
+  recoModules[i].active = !recoModules[i].active;
+  
+  // Sauvegarder en BDD (utilise la route admin/data existante)
+  try {
+    await fetch('/api/admin/data/reco', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: recoModules })
+    });
+  } catch(e) {
+    console.warn('Sync reco error:', e);
+  }
+  
+  saveData('ds_reco', recoModules); // garde le localStorage en backup
+  renderRecommendations();
+  toast(recoModules[i].active ? t('moduleEnabled') : t('moduleDisabled'));
+}
 
     function fetchProductImage(product, idx) {
       const keywords = buildImageKeywords(product);
@@ -3592,6 +3883,37 @@ async function renderDelivery() {
       }
       return 'computer+tech+product';
     }
+
+
+
+
+
+
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('adminSidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+
+function closeSidebar() {
+  document.getElementById('adminSidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+// Fermer sidebar quand on clique sur un item
+document.querySelectorAll('.sb-item').forEach(item => {
+  item.addEventListener('click', () => {
+    if (window.innerWidth <= 900) closeSidebar();
+  });
+});
+
+
+
+
+
+
 
     /* ═══════════════════════════════════════
        INTERACTIVE TOUR

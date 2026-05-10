@@ -2203,6 +2203,25 @@ app.put("/api/notifications/:id/read", async (req, res) => {
   }
 });
 
+
+
+app.get("/api/reco/config", async (req, res) => {
+  try {
+    const rows = await query(
+      "SELECT state_value FROM admin_state WHERE state_key = 'reco'"
+    );
+    const config = rows.length ? JSON.parse(rows[0].state_value) : [];
+    res.json({ success: true, config });
+  } catch(err) {
+    res.json({ success: true, config: [] });
+  }
+});
+
+
+
+
+
+
 /* =========================
    START SERVER
 ========================= */
